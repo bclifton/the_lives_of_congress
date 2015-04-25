@@ -1,0 +1,239 @@
+$label-fontsize: 10px;
+
+$money-color: #5c8100;
+$background-color: rgba(193, 186, 169, 0.2);
+
+body {
+  // width: 98%;
+  margin: 0;
+  padding: 0;
+  padding-top: 70px;
+  font: $label-fontsize 'Source Sans Pro', sans-serif;
+  background-color: #e8e8e8;
+}
+
+header {
+  color: #fff;
+  background: rgba(66, 68, 67, 1);
+  padding: 20px;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Libre Baskerville', serif;
+  font-weight: bold;
+}
+
+h1 {
+  margin: 0;
+  font-size: 25px;
+  text-transform: uppercase;
+}
+
+
+h2 {
+  margin: 0px 0px 20px 0px;
+  font-weight: normal;
+}
+
+h4 {
+  font-size: 18px;
+}
+
+hr {
+  margin-bottom: 5px;
+}
+
+p {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: $label-fontsize;
+  font-weight: 300;
+}
+
+label {
+  font-size: $label-fontsize;
+  font-weight: 500; 
+}
+
+input {
+  font-style: italic;
+  font-size: $label-fontsize;
+}
+
+a {
+  color: #156b90;
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+
+.navbar {
+  background-color: rgba(245, 245, 245, 0.95);
+  border: none;
+  background-image: none;
+  box-shadow: none;
+  margin: 0 15px;
+
+  .btn-default {
+    background-image: none;
+  }  
+}
+
+.navbar-header {
+  h4 {
+    margin-top: 0;
+  }
+}
+
+.container-fluid {
+  // width: 100%;
+}
+
+#info-panel {
+  background-color: white;
+  padding: 20px;
+  margin-bottom: -10px;
+  // margin-top: 50px;
+  border-radius: 0px;
+/*  position: fixed;
+  width: 22.8%;*/
+  // min-height: 400px;
+
+  p {
+    font-weight: 200;
+  }
+
+  ul {
+    overflow: auto;
+  }
+}
+
+
+#graphics-wrapper {
+  width: 100%;
+  background-color: white;
+  min-height: 400px;
+  // margin: 50px 0;
+  -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+#portrait {
+  img {
+    // border-radius: 500px;
+    height: 180px;  
+  }
+}
+
+.clip-ellipse {
+  -webkit-clip-path: ellipse(50% 50% at 50% 50%);
+  clip-path: ellipse(50% 50% at 50% 50%);
+}
+
+
+#graphics-panel {
+  padding-left: 0;
+  // width: 72.5%;
+}
+
+.graphics-module {
+  border-bottom: 1px solid lightgray;
+  margin: 0px 20px 20px 20px;
+  /*padding-right: 40px;*/
+}
+
+#legislator-name {
+  // margin-top: 15px;
+  text-align: center;
+}
+
+
+#bio-panel {
+  padding-right: 0;
+}
+
+#map {
+  height: 300px;
+  margin-top: 10px;
+  border: 10px solid white;
+}
+
+.committee-membership {
+
+}
+
+.networth {
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold !important;
+  color: $money-color;
+}
+
+.committee-name {
+  float: left;
+  padding: 0px 5px 1px;
+  background: $background-color;
+  // border-radius: 7px;
+  font-size: $label-fontsize;
+  margin: 2px 4px 2px 0px;
+}
+
+.subhead-highlight {
+  color: rgba(113, 113, 113, 0.75);
+  font-size: 16px;
+  line-height: 2;
+  text-align: center;
+  margin: 5px 0 0 0;
+  font-weight: normal;
+}
+
+
+.bar {
+  fill: rgba(92, 129, 0, 1);
+}
+
+.bar-background {
+  fill: rgba(193, 186, 169, 0.2);
+}
+
+.oppose-bar {
+  fill: rgba(189, 45, 40, 1);
+}
+
+.support-bar {
+  fill: rgba(15, 140, 120, 1);
+}
+
+.axis text {
+  font: $label-fontsize 'Source Sans Pro', sans-serif;;
+}
+
+#assets-bar-chart-title {
+  font-family: 'Source Sans Pro';
+  font-weight: bold;
+  color: $money-color;  
+}
+
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.y.axis line {
+  stroke: none;
+}
+
+.x.axis path, .y.axis path {
+  display: none;
+}
+
+.bar text {
+  fill: white;
+  font: $label-fontsize 'Source Sans Pro', sans-serif;
+  text-anchor: end;
+}

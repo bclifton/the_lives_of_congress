@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>The Lives of Congress</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- <link href='http://fonts.googleapis.com/css?family=Bitter:400,400italic' rel='stylesheet' type='text/css'> -->
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro|Libre+Baskerville:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="css/main.css">
+
+
+  <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+</head>
+<body>
+  <!--[if lt IE 7]>
+  <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+
+  <div class="container-fluid">
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <h4><a class="navbar-brand" href="/#">The Lives of Congress</a></h4>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <form class="navbar-form navbar-right" role="search">
+            <div class="form-group">
+              <input type="text" class="form-control" placeholder="Search">
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+          </form>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#/About">About</a></li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
+
+
+    <div class="row">
+      <div class="col-sm-3" id="bio-panel">
+        <div id="info-panel">
+          <div id="portrait"></div>
+          
+          <h2 id="legislator-name"></h2>
+          <hr>
+          <div id="legislator-worth">
+            <h5 class="subhead-highlight">Net Worth</h5>
+            
+          </div>
+          <hr>
+          <div>
+            <h5 class="subhead-highlight">Committees</h5>
+            <ul id="legislator-committees"></ul>
+          </div>
+        </div>
+        <div id="map"></div>
+      </div>
+      <div class="col-sm-9" id="graphics-panel">
+        <div id="graphics-wrapper">
+
+          <div class="graphics-module" id="stocks-and-mutual-funds-bargraph">
+            <div class="row">
+              <div class="col-sm-12">
+                <h3>Sectors of Stocks and Mutual Fund Investments: <span id="assets-bar-chart-title"></span></h3>            
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-2">
+                <p>This is where a description of the graphic could go. Perhaps to give contexts for what is happening.</p>
+              </div>
+              <div class="col-sm-10">
+                <div id="assets-bar-chart"></div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="graphics-module" id="outsider-support-graph">
+            <div class="row">
+              <div class="col-sm-12">
+                <h3>Corporate and Non-Profit Organization Positions on Bills</h3>             
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="row">
+                  <div class="col-sm-2">
+                    <p>This is where a description of the graphic could go. Perhaps to give contexts for what is happening.</p>
+                  </div>
+                  <div class="col-sm-5">
+                    <h4>Industries Supporting Legislation</h4>
+                    <div id="support-bar-chart"></div>
+                  </div>
+                  <div class="col-sm-5">
+                    <h4>Industries Opposing Legislation</h4>
+                    <div id="oppose-bar-chart"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="graphics-module" id="real-estate-assets-graphic">
+            <div class="row">
+              <div class="col-sm-12">
+                <h3>Real Estate Assets</h3>             
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <div id="properties-wrapper"></div>
+              </div>
+            </div>
+          </div>
+          
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script id="property-template" type="text/x-handlebars-template">
+    <div id="properties">
+      {{#each items}}
+      <div class="property">
+        <div class="inner">
+          <img src="http://congress-home.s3.amazonaws.com/images/property/{{this.pfid}}.jpg" class="main-image">
+
+          <div class="overlay">
+            <div class="pic-label">
+              <h4>{{this.google_address}}</h4>
+              <p>Reported value: <span class="value">{{display_value this.min_value this.max_value}}</span></p>
+              <p>Reported yearly income: <span class="income">{{display_value this.min_income this.max_income}}</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </script>
+    
+  <script type="text/javascript" charset="utf-8" src="js/vendor/cartodb.v3.13.min.js"></script>
+  <script type="text/javascript" charset="utf-8" src="js/vendor/mapbox.v2.1.5.standalone.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
