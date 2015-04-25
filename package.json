@@ -29,6 +29,7 @@
     "director": "~1.2.8",
     "bootstrap": "~3.3.4",
     "cartodb": "~0.2.1",
-    "handlebars-helpers": "~0.5.8"
+    "handlebars-helpers": "~0.5.8",
+    "leaflet": "~0.7.3"
   }
 }

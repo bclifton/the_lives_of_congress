@@ -1,3 +1,5 @@
+var _ = require('underscore');
+var $ = require('jquery');
 var director = require('director');
 
 var everyone;
@@ -49,7 +51,7 @@ function loadPerson(id) {
 			
 			clearPerson();
 
-			components.map.run(id);
+			components.map.run(person);
 			components.basic.run(person);
 			components.support.run(id);
 			components.financialassets.run(id);

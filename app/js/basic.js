@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var $ = require('jquery');
 var d3 = require('d3');
 var states = require('./states');
 
