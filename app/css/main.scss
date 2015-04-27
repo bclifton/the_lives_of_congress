@@ -1,7 +1,7 @@
+@import 'colors';
+
 $label-fontsize: 10px;
 
-$money-color: #5c8100;
-$background-color: rgba(193, 186, 169, 0.2);
 
 body {
   // width: 98%;
@@ -18,6 +18,16 @@ header {
   padding: 20px;
 }
 
+a {
+  color: #978f80;
+
+  &:hover {
+    color: #7c715e;
+  }  
+
+}
+
+
 h1, h2, h3, h4, h5 {
   font-family: 'Libre Baskerville', serif;
   font-weight: bold;
@@ -28,7 +38,6 @@ h1 {
   font-size: 25px;
   text-transform: uppercase;
 }
-
 
 h2 {
   margin: 0px 0px 20px 0px;
@@ -59,10 +68,6 @@ input {
   font-size: $label-fontsize;
 }
 
-a {
-  color: #156b90;
-}
-
 ul {
   list-style: none;
   padding-left: 0;
@@ -70,7 +75,7 @@ ul {
 
 
 .navbar {
-  background-color: rgba(245, 245, 245, 0.95);
+  background-color: rgba(230, 230, 230, 0.94);
   border: none;
   background-image: none;
   box-shadow: none;
@@ -87,8 +92,22 @@ ul {
   }
 }
 
-.container-fluid {
-  // width: 100%;
+.navbar-brand {
+  font-style: italic;
+  font-weight: 400;
+}
+
+input#srch-term {
+  border-radius: 0;
+}
+button.btn.btn-default {
+  background-image: none;
+  border-radius: 0;
+}
+
+.card{
+  background-color: white;
+  margin: 0 15px 15px 15px;
 }
 
 #info-panel {
@@ -140,7 +159,7 @@ ul {
 
 .graphics-module {
   border-bottom: 1px solid lightgray;
-  margin: 0px 20px 20px 20px;
+  margin: 0px 20px 0px 20px;
   /*padding-right: 40px;*/
 }
 
@@ -164,7 +183,7 @@ ul {
 
 }
 
-.networth {
+#networth {
   text-align: center;
   font-size: 20px;
   font-weight: bold !important;
@@ -189,6 +208,11 @@ ul {
   font-weight: normal;
 }
 
+
+.graph-description {
+  margin-top: 10px;
+  font-size: $label-fontsize;
+}
 
 .bar {
   fill: rgba(92, 129, 0, 1);
@@ -236,4 +260,11 @@ ul {
   fill: white;
   font: $label-fontsize 'Source Sans Pro', sans-serif;
   text-anchor: end;
+}
+
+
+
+.input-group-btn:last-child>.btn, .input-group-btn:last-child>.btn-group {
+  margin-left: -1px;
+  margin-bottom: 10px;
 }

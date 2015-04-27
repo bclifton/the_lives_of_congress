@@ -1,7 +1,7 @@
 var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
-var queue = require('queue');
+var queue = require('queue-async');
 
 var currency = d3.format('$,.0f');
 
@@ -38,7 +38,7 @@ function load(id) {
 function render(data, total) {
 	
 	$('#assets-bar-chart-title').append(' ' + currency(total));
-	var margin = {top: 20, right: 30, bottom: 30, left: 150};
+	var margin = {top: 10, right: 30, bottom: 30, left: 150};
 	var width = $('#assets-bar-chart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
 

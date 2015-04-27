@@ -22,6 +22,7 @@ function load(id) {
 }
 
 function render(data, id) {
+  // console.log(data, id);
 
   data = data.map(function(d){
     // d.fullname = d.full_name;
@@ -94,9 +95,7 @@ function render(data, id) {
 
 	filter_people(id);
 
-
   function filter_people(id) {
-
     q = id.toLowerCase();
 
     if (q.length < 1) {
@@ -106,11 +105,9 @@ function render(data, id) {
     var pfids = {};
 
     d3.selectAll('.property').each(function(d){
-      var name = d.fullname.toLowerCase();
-      var city = d.address.city ? d.address.city.toLowerCase() : null;
-      var state = d.address.fullstate ? d.address.fullstate.toLowerCase() : null;
+      var id = d.cid.toLowerCase();
 
-      if (name.indexOf(q) > -1 || (city && city.indexOf(q) > -1) || (state && state.indexOf(q) > -1)) {
+      if (id === q){
         pfids[d.pfid.toUpperCase()] = null;
         this.style.display = 'block';
       } else {
@@ -118,9 +115,6 @@ function render(data, id) {
       }
     });
 
-    // if (q.length >= 1) {
-    //   LayerActions.selection(Object.keys(pfids));
-    // }    
   }
 }
 

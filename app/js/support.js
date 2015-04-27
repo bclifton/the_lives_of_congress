@@ -1,6 +1,6 @@
 var $ = require('jquery');
 var d3 = require('d3');
-var queue = require('queue');
+var queue = require('queue-async');
 
 function run(id) {
 	console.log('support.running / id: ', id);

@@ -30,6 +30,10 @@
     "bootstrap": "~3.3.4",
     "cartodb": "~0.2.1",
     "handlebars-helpers": "~0.5.8",
-    "leaflet": "~0.7.3"
+    "leaflet": "~0.7.3",
+    "queue-async": "~1.0.7",
+    "c": "~0.1.0",
+    "typeahead": "~0.2.0",
+    "typeahead.js": "~0.11.0"
   }
 }
