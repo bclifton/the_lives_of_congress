@@ -1,3 +1,22 @@
+#home {
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-color: white; }
+  #home h1 {
+    font-family: 'Libre Baskerville' !important;
+    text-align: center;
+    text-transform: none;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 60px;
+    color: #424443; }
+  #home .center-block {
+    margin: 0;
+    float: none; }
+
 body {
   margin: 0;
   padding: 0;
@@ -9,6 +28,11 @@ header {
   color: #fff;
   background: #424443;
   padding: 20px; }
+
+a {
+  color: #978f80; }
+  a:hover {
+    color: #7c715e; }
 
 h1, h2, h3, h4, h5 {
   font-family: 'Libre Baskerville', serif;
@@ -42,15 +66,12 @@ input {
   font-style: italic;
   font-size: 10px; }
 
-a {
-  color: #156b90; }
-
 ul {
   list-style: none;
   padding-left: 0; }
 
 .navbar {
-  background-color: rgba(245, 245, 245, 0.95);
+  background-color: rgba(230, 230, 230, 0.94);
   border: none;
   background-image: none;
   box-shadow: none;
@@ -60,6 +81,21 @@ ul {
 
 .navbar-header h4 {
   margin-top: 0; }
+
+.navbar-brand {
+  font-style: italic;
+  font-weight: 400; }
+
+input#srch-term {
+  border-radius: 0; }
+
+button.btn.btn-default {
+  background-image: none;
+  border-radius: 0; }
+
+.card {
+  background-color: white;
+  margin: 0 15px 15px 15px; }
 
 #info-panel {
   background-color: white;
@@ -92,7 +128,7 @@ ul {
 
 .graphics-module {
   border-bottom: 1px solid lightgray;
-  margin: 0px 20px 20px 20px;
+  margin: 0px 20px 0px 20px;
   /*padding-right: 40px;*/ }
 
 #legislator-name {
@@ -106,7 +142,7 @@ ul {
   margin-top: 10px;
   border: 10px solid white; }
 
-.networth {
+#networth {
   text-align: center;
   font-size: 20px;
   font-weight: bold !important;
@@ -126,6 +162,10 @@ ul {
   text-align: center;
   margin: 5px 0 0 0;
   font-weight: normal; }
+
+.graph-description {
+  margin-top: 10px;
+  font-size: 10px; }
 
 .bar {
   fill: #5c8100; }
@@ -162,6 +202,34 @@ ul {
   fill: white;
   font: 10px 'Source Sans Pro', sans-serif;
   text-anchor: end; }
+
+.input-group-btn:last-child > .btn, .input-group-btn:last-child > .btn-group {
+  margin-left: -1px;
+  margin-bottom: 10px; }
+
+.leaflet-popup-content-wrapper {
+  border-radius: 4px; }
+
+.leaflet-popup-content {
+  margin: 0;
+  padding: 5px 10px 10px;
+  width: 120px !important; }
+  .leaflet-popup-content .popup-img {
+    width: 100px; }
+  .leaflet-popup-content p {
+    margin: 5px 0px 0px;
+    font-size: 10px;
+    line-height: 1; }
+
+.tt-menu {
+  background-color: white;
+  width: 100%;
+  border: 1px solid rgba(193, 186, 169, 0.2);
+  padding: 10px;
+  font-size: 14px !important;
+  -webkit-box-shadow: 0px 6px 10px -5px rgba(51, 51, 51, 0.41);
+  -moz-box-shadow: 0px 6px 10px -5px rgba(51, 51, 51, 0.41);
+  box-shadow: 0px 6px 10px -5px rgba(51, 51, 51, 0.41); }
 
 .property {
   float: left;
@@ -208,6 +276,7 @@ img.main-image {
     margin: 0;
     font-size: 20px; }
   .pic-label h4 {
+    font: 14px 'Source Sans Pro';
     font-weight: normal;
     padding: 5px 10px 5px 5px;
     line-height: 1.5; }
