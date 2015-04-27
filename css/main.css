@@ -20,7 +20,7 @@
 body {
   margin: 0;
   padding: 0;
-  padding-top: 70px;
+  padding-top: 60px;
   font: 10px 'Source Sans Pro', sans-serif;
   background-color: #e8e8e8; }
 
@@ -71,7 +71,7 @@ ul {
   padding-left: 0; }
 
 .navbar {
-  background-color: rgba(230, 230, 230, 0.94);
+  background-color: rgba(231, 231, 231, 0.95);
   border: none;
   background-image: none;
   box-shadow: none;
@@ -82,7 +82,16 @@ ul {
 .navbar-header h4 {
   margin-top: 0; }
 
+.nav li a {
+  font-size: 14px;
+  padding-top: 18px; }
+
+form.navbar-form {
+  margin-top: 10px;
+  padding-right: 0; }
+
 .navbar-brand {
+  font-size: 24px;
   font-style: italic;
   font-weight: 400; }
 
