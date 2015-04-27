@@ -301,18 +301,14 @@ var states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
 ];
  
 $('#srch-term').typeahead({
-  hint: true,
-  highlight: true,
-  minLength: 1
-},
-{
-  name: 'states',
-  source: substringMatcher(states)
-});
-
-
-$('#srch-term')
-	.typeahead(/* pass in your datasets and initialize the typeahead */)
+	  hint: true,
+	  highlight: true,
+	  minLength: 1
+	},
+	{
+	  name: 'states',
+	  source: substringMatcher(states)
+	})
 	.on('typeahead:selected', onAutocompleted);
 
 
