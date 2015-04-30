@@ -2,7 +2,6 @@
 
 $label-fontsize: 10px;
 
-
 body {
   // width: 98%;
   margin: 0;
@@ -24,9 +23,7 @@ a {
   &:hover {
     color: #7c715e;
   }  
-
 }
-
 
 h1, h2, h3, h4, h5 {
   font-family: 'Libre Baskerville', serif;
@@ -73,52 +70,13 @@ ul {
   padding-left: 0;
 }
 
-
-.navbar {
-  background-color: rgba(231, 231, 231, 0.95);
-  border: none;
-  background-image: none;
-  box-shadow: none;
-  margin: 0 15px;
-
-  .btn-default {
-    background-image: none;
-  }  
-}
-
-.navbar-header {
-  h4 {
-    margin-top: 0;
-  }
-}
-
-.nav li a {
-  font-size: 14px;
-  padding-top: 18px;
-}
-
-form.navbar-form {
-  margin-top: 10px;
-  padding-right: 0;
-}
-
-.navbar-brand {
-  font-size: 24px;
-  font-style: italic;
-  font-weight: 400;
-}
-
-input#srch-term {
-  border-radius: 0;
-}
-button.btn.btn-default {
-  background-image: none;
-  border-radius: 0;
-}
-
 .card{
   background-color: white;
   margin: 0 15px 15px 15px;
+  padding-top: 15px;
+  -webkit-box-shadow: 0px 8px 14px 0px rgba(77,77,77,0.59);
+  -moz-box-shadow: 0px 8px 14px 0px rgba(77,77,77,0.59);
+  box-shadow: 0px 8px 14px 0px rgba(77,77,77,0.59);
 }
 
 #info-panel {
@@ -219,7 +177,6 @@ button.btn.btn-default {
   font-weight: normal;
 }
 
-
 .graph-description {
   margin-top: 10px;
   font-size: $label-fontsize;
@@ -227,18 +184,6 @@ button.btn.btn-default {
 
 .bar {
   fill: rgba(92, 129, 0, 1);
-}
-
-.bar-background {
-  fill: rgba(193, 186, 169, 0.2);
-}
-
-.oppose-bar {
-  fill: rgba(189, 45, 40, 1);
-}
-
-.support-bar {
-  fill: rgba(15, 140, 120, 1);
 }
 
 .axis text {
@@ -250,7 +195,6 @@ button.btn.btn-default {
   font-weight: bold;
   color: $money-color;  
 }
-
 
 .axis path,
 .axis line {
@@ -272,7 +216,6 @@ button.btn.btn-default {
   font: $label-fontsize 'Source Sans Pro', sans-serif;
   text-anchor: end;
 }
-
 
 
 .input-group-btn:last-child>.btn, .input-group-btn:last-child>.btn-group {

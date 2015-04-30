@@ -2,8 +2,7 @@ var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
 var queue = require('queue-async');
-
-var currency = d3.format('$,.0f');
+var util = require('./utilities');
 
 function run(id) {
 	console.log('financialAssets.running / id: ', id);
@@ -37,10 +36,12 @@ function load(id) {
 
 function render(data, total) {
 	
-	$('#assets-bar-chart-title').append(' ' + currency(total));
+	$('#assets-bar-chart-title').append(' ' + util.currency(total));
 	var margin = {top: 10, right: 30, bottom: 30, left: 150};
 	var width = $('#assets-bar-chart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
+
+	var sorted = _.last(_.sortBy(data, 'money'), 3);
 
 	var y = d3.scale.ordinal()
 		.domain(data.map(function(d) { return d.sector; }))
@@ -86,20 +87,33 @@ function render(data, total) {
 		.attr('width', width)
 		.attr('height', y.rangeBand());
 
-	chart.selectAll('.bar')
+	
+	var bar = chart.selectAll('.bar')
 	  	.data(data)
-		.enter()
-		.append('rect')
+		.enter();
+
+	bar.append('rect')
 	    .attr('class', 'bar')
 	    .attr('x', function(d) { return 0; })
 	    .attr('y', function(d) { return y(d.sector); })
 	    .attr('width', function(d) { return x(d.percent); })
-	    .attr('height', y.rangeBand())
-	    .append("text")
+	    .attr('height', y.rangeBand());
+	
+	bar.append("text")
 	    .attr("x", function(d) { return x(d.percent) + 5; })
-	    .attr("y", function(d) { return y(d.sector) / 2; })
+	    .attr("y", function(d) { return y(d.sector) + y.rangeBand()/2; })
 	    .attr("dy", ".35em")
-	    .text(function(d) { return d.percent; });
+	    .text(function(d) {
+	    	var r = _.find(sorted, function(i) {
+				return i.sector === d.sector;
+	    	});
+
+	    	if (r !== undefined) {
+	    		return util.currency(r.money);
+	    	} else {
+	    		return '';
+	    	}
+	    });
 }
 
 function renderError() {

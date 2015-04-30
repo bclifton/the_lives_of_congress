@@ -1,0 +1,31 @@
+@import 'colors';
+
+.bar-background {
+  fill: $background-color;
+}
+
+.oppose-bar {
+  fill: $oppose-color;
+}
+
+.support-bar {
+  fill: $support-color;
+}
+
+.zero-line {
+	stroke: rgba(193, 186, 169, 0.6);
+}
+
+.h-line {
+	stroke: rgba(193, 186, 169, 0.2);	
+}
+
+.x-axis-label {
+	text-anchor: middle;
+}
+
+.x-axis-tick {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}

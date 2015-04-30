@@ -34,6 +34,7 @@
     "queue-async": "~1.0.7",
     "c": "~0.1.0",
     "typeahead": "~0.2.0",
-    "typeahead.js": "~0.11.0"
+    "typeahead.js": "~0.11.0",
+    "gulp-livereload": "~3.8.0"
   }
 }

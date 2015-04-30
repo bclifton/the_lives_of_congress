@@ -28,10 +28,12 @@ function run(person) {
 
 	var year = (new Date().getYear() + 1900) - +person.first_elected;
 	var title = '<span class="subhead-highlight" style="font-size: 16px;">' + type + '</span>';
-	var state = '<span style="color: rgb(51, 51, 51); font-size: 20px;">(' + states[person.state] + ')</span>';
-	var firstElected = '<br><span style="color: rgb(51, 51, 51); font-size: 14px;">First Elected in ' + person.first_elected + ' (' + year + ' years)</span>';
+	var state = '<span style="color: rgba(113, 113, 113, 0.75); font-size: 20px;">(' + states[person.state] + ')</span>';
+	var firstElected = '<h5 class="subhead-highlight" style="color: rgb(51, 51, 51); font-size: 14px; margin: 10px 0 -5px;">First Elected in ' + person.first_elected + ' (' + year + ' years)</h5>';
 	var fullTitle = person.first_name + ' ' + person.last_name + '<br>' + state;
-	$('#legislator-name').html(title + '<br>' + fullTitle + firstElected);
+	$('#legislator-name').html(title + '<br>' + fullTitle);
+	$('#first-elected').html(firstElected);
+	
 	
 
 	var worth_high = currency(person.net_high);
@@ -41,14 +43,23 @@ function run(person) {
 	$('#networth').html(estimatedWorth);
 
 	var committeesMembership = Object.keys(person.committees);
-	$('#legislator-committees').empty();
+	// $('#legislator-committees').empty();
+	$('#committee-chairman').empty();
+	$('#committee-ranking_member').empty();
+	$('#committee-exofficio').empty();
+	$('#committee-member').empty();
+
 	for (var i = 0; i < committeesMembership.length; i++) {
 		var membershipStatus = capitalize(committeesMembership[i].replace('_', ' '));
-		var membershipType = 'committee-membership-' + committeesMembership[i];
-		$('#legislator-committees').append('<li style="float:left;"><h5>' + membershipStatus +'</h5><ul id="' + membershipType + '"></ul></li>');
+		var membershipType = 'committee-' + committeesMembership[i];
+
+
+		var target = '#committee-' + committeesMembership[i];
+		console.log('target', target);
+		$(target).append('<li style="float:left;"><h5>' + membershipStatus +'</h5><ul id="sub-' + membershipType + '"></ul></li>');
 		var membership = committeesMembership[i];
 		_.each(person.committees[committeesMembership[i]], function(item) {
-			$('#' + membershipType + '').append('<li class="committee-name">' + item +'</li>');
+			$('#sub-' + membershipType + '').append('<li class="committee-name">' + item +'</li>');
 		});
 	}
 

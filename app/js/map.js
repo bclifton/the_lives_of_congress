@@ -3,6 +3,7 @@ var L = require('leaflet');
 var queue = require('queue-async');
 var util = require('./utilities');
 
+var map;
 var sublayers = [];
 var p;
 
@@ -48,6 +49,9 @@ function findRealEstate(cid, locationsData) {
 }
 
 function manage(error, districtsData, locationsData) {
+	
+	if (map != undefined) { map.remove(); }
+
 	if (error) {
 		console.log(error);
 	} else {
@@ -56,7 +60,7 @@ function manage(error, districtsData, locationsData) {
 }
 
 function render(districtsData, locationsData) {
-	console.log(locationsData);
+	// console.log(locationsData);
 
 	var properties = findRealEstate(p.opensecrets_id, locationsData);
 
@@ -66,8 +70,7 @@ function render(districtsData, locationsData) {
 	    detectRetina: true
 	});
 
-
-	var map = new L.Map('map', {
+	map = new L.Map('map', {
 	    center: [39.8282, -98.5795],
 	    zoom: 2
 	  })
@@ -106,6 +109,7 @@ function render(districtsData, locationsData) {
  	}
 
  	function onEachFeature(feature, layer) {
+
  	    layer.on({
  	        // mouseover: highlightFeature,
  	        // mouseout: resetHighlight,
@@ -117,6 +121,9 @@ function render(districtsData, locationsData) {
  		style: style,
  		onEachFeature: onEachFeature
  	}).addTo(map);
+
+
+ 	map.fitBounds(layer.getBounds());
 
  	var popup = L.popup({
  		offset: new L.Point(0, -20)

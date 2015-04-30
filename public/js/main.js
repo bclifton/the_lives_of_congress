@@ -29,10 +29,12 @@ function run(person) {
 
 	var year = (new Date().getYear() + 1900) - +person.first_elected;
 	var title = '<span class="subhead-highlight" style="font-size: 16px;">' + type + '</span>';
-	var state = '<span style="color: rgb(51, 51, 51); font-size: 20px;">(' + states[person.state] + ')</span>';
-	var firstElected = '<br><span style="color: rgb(51, 51, 51); font-size: 14px;">First Elected in ' + person.first_elected + ' (' + year + ' years)</span>';
+	var state = '<span style="color: rgba(113, 113, 113, 0.75); font-size: 20px;">(' + states[person.state] + ')</span>';
+	var firstElected = '<h5 class="subhead-highlight" style="color: rgb(51, 51, 51); font-size: 14px; margin: 10px 0 -5px;">First Elected in ' + person.first_elected + ' (' + year + ' years)</h5>';
 	var fullTitle = person.first_name + ' ' + person.last_name + '<br>' + state;
-	$('#legislator-name').html(title + '<br>' + fullTitle + firstElected);
+	$('#legislator-name').html(title + '<br>' + fullTitle);
+	$('#first-elected').html(firstElected);
+	
 	
 
 	var worth_high = currency(person.net_high);
@@ -42,14 +44,23 @@ function run(person) {
 	$('#networth').html(estimatedWorth);
 
 	var committeesMembership = Object.keys(person.committees);
-	$('#legislator-committees').empty();
+	// $('#legislator-committees').empty();
+	$('#committee-chairman').empty();
+	$('#committee-ranking_member').empty();
+	$('#committee-exofficio').empty();
+	$('#committee-member').empty();
+
 	for (var i = 0; i < committeesMembership.length; i++) {
 		var membershipStatus = capitalize(committeesMembership[i].replace('_', ' '));
-		var membershipType = 'committee-membership-' + committeesMembership[i];
-		$('#legislator-committees').append('<li style="float:left;"><h5>' + membershipStatus +'</h5><ul id="' + membershipType + '"></ul></li>');
+		var membershipType = 'committee-' + committeesMembership[i];
+
+
+		var target = '#committee-' + committeesMembership[i];
+		console.log('target', target);
+		$(target).append('<li style="float:left;"><h5>' + membershipStatus +'</h5><ul id="sub-' + membershipType + '"></ul></li>');
 		var membership = committeesMembership[i];
 		_.each(person.committees[committeesMembership[i]], function(item) {
-			$('#' + membershipType + '').append('<li class="committee-name">' + item +'</li>');
+			$('#sub-' + membershipType + '').append('<li class="committee-name">' + item +'</li>');
 		});
 	}
 
@@ -65,8 +76,7 @@ var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
 var queue = require('queue-async');
-
-var currency = d3.format('$,.0f');
+var util = require('./utilities');
 
 function run(id) {
 	console.log('financialAssets.running / id: ', id);
@@ -100,10 +110,12 @@ function load(id) {
 
 function render(data, total) {
 	
-	$('#assets-bar-chart-title').append(' ' + currency(total));
+	$('#assets-bar-chart-title').append(' ' + util.currency(total));
 	var margin = {top: 10, right: 30, bottom: 30, left: 150};
 	var width = $('#assets-bar-chart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
+
+	var sorted = _.last(_.sortBy(data, 'money'), 3);
 
 	var y = d3.scale.ordinal()
 		.domain(data.map(function(d) { return d.sector; }))
@@ -149,20 +161,33 @@ function render(data, total) {
 		.attr('width', width)
 		.attr('height', y.rangeBand());
 
-	chart.selectAll('.bar')
+	
+	var bar = chart.selectAll('.bar')
 	  	.data(data)
-		.enter()
-		.append('rect')
+		.enter();
+
+	bar.append('rect')
 	    .attr('class', 'bar')
 	    .attr('x', function(d) { return 0; })
 	    .attr('y', function(d) { return y(d.sector); })
 	    .attr('width', function(d) { return x(d.percent); })
-	    .attr('height', y.rangeBand())
-	    .append("text")
+	    .attr('height', y.rangeBand());
+	
+	bar.append("text")
 	    .attr("x", function(d) { return x(d.percent) + 5; })
-	    .attr("y", function(d) { return y(d.sector) / 2; })
+	    .attr("y", function(d) { return y(d.sector) + y.rangeBand()/2; })
 	    .attr("dy", ".35em")
-	    .text(function(d) { return d.percent; });
+	    .text(function(d) {
+	    	var r = _.find(sorted, function(i) {
+				return i.sector === d.sector;
+	    	});
+
+	    	if (r !== undefined) {
+	    		return util.currency(r.money);
+	    	} else {
+	    		return '';
+	    	}
+	    });
 }
 
 function renderError() {
@@ -171,12 +196,13 @@ function renderError() {
 
 exports.run = run;
 
-},{"d3":9,"jquery":43,"queue-async":45,"underscore":47}],3:[function(require,module,exports){
+},{"./utilities":8,"d3":9,"jquery":43,"queue-async":45,"underscore":47}],3:[function(require,module,exports){
 var _ = require('underscore');
 var $ = require('jquery');
 var typeahead = require('typeahead.js');
 var director = require('director');
 var Handlebars = require('handlebars');
+var states = require('./states');
 
 var everyone;
 
@@ -230,7 +256,6 @@ function loadPerson(id) {
 		var person = _.findWhere(data, {bioguide_id: id});
 		if (person) {
 			console.log(person);
-			
 			clearPerson();
 
 			components.map.run(person);
@@ -246,108 +271,6 @@ function loadPerson(id) {
 }
 
 
-// function filter(query) {
-// 	query = query.toLowerCase();
-
-// 	_.each(everyone, function(entry) {
-// 		var name = entry.first_name + ' ' + entry.last_name;
-// 		if (name.indexOf(query) > -1){
-// 			console.log('fuck');
-// 		}
-// 	});
-// }
-
-////////////////////////////////////////////////////////////
-
-
-var substringMatcher = function(strs) {
-  return function findMatches(q, cb) {
-    var matches, substringRegex;
- 
-    // an array that will be populated with substring matches
-    matches = [];
- 
-    // regex used to determine if a string contains the substring `q`
-    substrRegex = new RegExp(q, 'i');
- 
-    // iterate through the pool of strings and for any string that
-    // contains the substring `q`, add it to the `matches` array
-    $.each(strs, function(i, str) {
-      if (substrRegex.test(str.state)) {
-        matches.push(str);
-      }
-    });
- 
-	// var fullName = person.first_name + ' ' + person.last_name;
-
- //    $.each(people, function(i, person) {
-	//     if (substrRegex.test(person.state)) {
-	// 	    matches.push(person.name + ' ' person.state);
-	//     }
- //    });
-
-    cb(matches);
-  };
-};
- 
-<<<<<<< HEAD
-var states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-  'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii',
-  'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana',
-  'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota',
-  'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-  'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota',
-  'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
-  'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
-  'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
-];
- 
-$('#srch-term').typeahead({
-	  hint: true,
-	  highlight: true,
-	  minLength: 1
-	},
-	{
-	  name: 'states',
-	  source: substringMatcher(states)
-	})
-	.on('typeahead:selected', onAutocompleted);
-=======
-
-getEveryone(function(){
-
-  $('#srch-term').typeahead({
-    hint: true,
-    highlight: true,
-    minLength: 1
-  },
-  {
-    name: 'states',
-    source: substringMatcher(everyone),
-    display: function(obj) {
-      console.log(obj);
-      return obj.first_name + ' ' + obj.last_name + ' - ' + obj.state
-    },
-    templates: {
-    empty: [
-      '<div class="empty-message">',
-        'unable to find any Best Picture winners that match the current query',
-      '</div>'
-    ].join('\n'),
-    suggestion: Handlebars.compile('<div><strong>{{first_name}} {{last_name}}</strong> – {{state}}</div>')
-  }
-  }).on('typeahead:selected', onAutocompleted);
-});
- 
->>>>>>> 5e62f64cac9733faf23d0477ed43a3507457e34c
-
-
-function onAutocompleted($e, datum) {
-	window.location = '#/' + datum.bioguide_id;
-}
-
-
-////////////////////////////////////////////////////////////
 
 var routes = {
 	'/': home,
@@ -357,14 +280,77 @@ var routes = {
 
 var router = director.Router(routes);
 
-router.init();
 
-},{"./basic":1,"./financialAssets":2,"./map":4,"./realestate":5,"./support":7,"director":10,"handlebars":31,"jquery":43,"typeahead.js":46,"underscore":47}],4:[function(require,module,exports){
+////////////////////////////////////////////////////////////
+
+
+var matcher = function(everyone) {
+  return function findMatches(q, cb) {
+    var matches, substrRegex;
+    matches = [];
+    substrRegex = new RegExp(q, 'i');
+ 
+    
+
+    $.each(everyone, function(i, person) {
+    	var state = states[person.state];
+    	person.statename = state;
+	    if (substrRegex.test(state) || substrRegex.test(person.first_name) || substrRegex.test(person.last_name)) {
+	        matches.push(person);
+	    }
+    });
+
+    cb(matches);
+  };
+};
+ 
+
+getEveryone(function() {
+
+	$('#srch-term').typeahead({
+	    hint: true,
+	    highlight: false,
+	    minLength: 1
+	},
+	{
+	    name: 'congress',
+	    source: matcher(everyone),
+	    limit: 600,
+	    display: function(obj) {
+	      // console.log(obj)
+	      return obj.first_name + ' ' + obj.last_name + ' (' + states[obj.state] + ')';
+	    },
+	    templates: {
+		    empty: [
+		      '<div class="empty-message">',
+		        'No Results',
+		      '</div>'
+		    ].join('\n'),
+		    suggestion: Handlebars.compile('<div>{{first_name}} {{last_name}} ({{statename}})</div>')
+		}
+	}).on('typeahead:selected', onAutocompleted);
+
+	router.init();
+
+});
+ 
+
+function onAutocompleted($e, person) {
+	window.location = '#/' + person.bioguide_id;
+}
+
+
+
+
+
+
+},{"./basic":1,"./financialAssets":2,"./map":4,"./realestate":5,"./states":6,"./support":7,"director":10,"handlebars":31,"jquery":43,"typeahead.js":46,"underscore":47}],4:[function(require,module,exports){
 var _ = require('underscore');
 var L = require('leaflet');
 var queue = require('queue-async');
 var util = require('./utilities');
 
+var map;
 var sublayers = [];
 var p;
 
@@ -410,6 +396,9 @@ function findRealEstate(cid, locationsData) {
 }
 
 function manage(error, districtsData, locationsData) {
+	
+	if (map != undefined) { map.remove(); }
+
 	if (error) {
 		console.log(error);
 	} else {
@@ -418,7 +407,7 @@ function manage(error, districtsData, locationsData) {
 }
 
 function render(districtsData, locationsData) {
-	console.log(locationsData);
+	// console.log(locationsData);
 
 	var properties = findRealEstate(p.opensecrets_id, locationsData);
 
@@ -428,8 +417,7 @@ function render(districtsData, locationsData) {
 	    detectRetina: true
 	});
 
-
-	var map = new L.Map('map', {
+	map = new L.Map('map', {
 	    center: [39.8282, -98.5795],
 	    zoom: 2
 	  })
@@ -468,6 +456,7 @@ function render(districtsData, locationsData) {
  	}
 
  	function onEachFeature(feature, layer) {
+
  	    layer.on({
  	        // mouseover: highlightFeature,
  	        // mouseout: resetHighlight,
@@ -479,6 +468,9 @@ function render(districtsData, locationsData) {
  		style: style,
  		onEachFeature: onEachFeature
  	}).addTo(map);
+
+
+ 	map.fitBounds(layer.getBounds());
 
  	var popup = L.popup({
  		offset: new L.Point(0, -20)
@@ -788,9 +780,12 @@ module.exports = {
 };
 
 },{}],7:[function(require,module,exports){
+var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
 var queue = require('queue-async');
+
+var legID;
 
 function run(id) {
 	console.log('support.running / id: ', id);
@@ -799,33 +794,318 @@ function run(id) {
 
 function load(id) {
 
-	d3.json('assets/114_top10_oppose_industries.json', function(error, data) {
-		if (error) {
-			renderError();
-		} else {
-			opposeChart(data[id]);
-		}
-	});
+	legID = id;
+	queue()
+		.defer(d3.csv, 'assets/crp_categories_sector-industries1.csv')
+		.defer(d3.json, 'assets/114_legislator_sector_support.json')
+		.await(render);
 
-	d3.json('assets/114_top10_support_industries.json', function(error, data) {
-		if (error) {
-			renderError();
-		} else {
-			supportChart(data[id]);
-		}
-	});
+	// d3.csv('assets/crp_categories_sector-industries.csv', function(error, data) {
+	// 	comboChart(data);
+	// });
+
+
+	// d3.json('assets/114_top10_oppose_industries.json', function(error, data) {
+	// 	if (error) {
+	// 		renderError();
+	// 	} else {
+	// 		opposeChart(data[id]);
+	// 	}
+	// });
+
+	// d3.json('assets/114_top10_support_industries.json', function(error, data) {
+	// 	if (error) {
+	// 		renderError();
+	// 	} else {
+	// 		supportChart(data[id]);
+	// 	}
+	// });
 
 }
 
-function render(data) {
+function render(error, categories, data) {
+	if (error) {
+		renderError();
+	} else {
+		var d = [];
+		_.each(data[legID], function(value, key) {
+			var t = {};
+			t[key] = value;
+			d.push(t);
+		});
 
+		var c = {};
+		_.each(categories, function(entry) {
+			if (_.has(c, entry.sector)) {
+				c[entry.sector] += 1;
+			} else {
+				c[entry.sector] = 1;	
+			}
+			
+		});
+		var c2 = [];
+		_.each(c, function(value, key) {
+			var t = {};
+			t[key] = value;
+			c2.push(t);
+		});
+
+		comboChart(categories, d, c2);
+	}
 }
 
 function renderError() {
 	console.log('support.renderError');
 }
 
-function supportChart (data) {
+
+function comboChart(categories, data, catNames) {
+	// console.log(catNames);
+	// console.log(data);
+
+	var total = catNames.reduce(function(previousValue, currentValue, i) {
+		if (i === 1) {
+			return d3.values(previousValue)[0] + d3.values(currentValue)[0];
+		} else {
+			return previousValue + d3.values(currentValue)[0];
+		}
+	});
+	console.log('total', total);
+
+	var margin = {top: 20, right: 30, bottom: 70, left: 20};
+	var width = $('#support-bar-chart').width() - margin.left - margin.right;
+	var height = 300 - margin.top - margin.bottom;
+	var rangePadding = 0.1;
+
+
+	var x = d3.scale.ordinal()
+		.domain(categories.map(function(d) { return d.industry; }))
+	    .rangeBands([0, width], rangePadding + 0.002, 0);
+
+	console.log('x.range',x.range());
+
+	var y = d3.scale.linear()
+		.domain([-70, 70])
+	    .range([height, 0]);
+
+	var h = d3.scale.linear()
+		.domain([0, 50])
+		.range([0, height/2]);
+
+
+	var x2 = d3.scale.ordinal()
+		.domain(categories.map(function(d) { 
+			return d.sector; 
+		}))
+		.rangeBands([0, width], rangePadding, 0);
+
+	var xAxis = d3.svg.axis()
+	    .scale(x2)
+	    .orient("bottom");
+
+	var yAxis = d3.svg.axis()
+	    .scale(y)
+	    .orient("left");
+
+	var chart = d3.select("#support-bar-chart")
+		.append('svg')
+		.attr('class', 'chart')
+	    .attr("width", width + margin.left + margin.right)
+	    .attr("height", height + margin.top + margin.bottom)
+	    .append("g")  
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	// chart.append("g")
+	//     .attr("class", "x axis")
+	//     .attr("transform", "translate(0," + height + ")")
+	//     .call(xAxis)
+	//     .selectAll("text")
+	//         .style("text-anchor", "end")
+	//         .attr("dx", "-.8em")
+	//         .attr("dy", ".15em")
+	//         .attr("transform", "rotate(-65)");
+
+	chart.append("g")
+	  	.attr("class", "y axis")
+	  	.call(yAxis);
+
+
+	var previous;
+	for (var i = 0; i < catNames.length; i++) {
+		// var xPos = x.range()[0];
+		var xPos = x.range()[0] + rangePadding;
+		if (i !== 0) { xPos = previous; }
+
+		// console.log(x.rangeBand(), width);
+		var padding = x.rangeBand() * rangePadding;
+		var step = x.rangeBand() + padding;
+
+		var categoryLength = d3.values(catNames[i])[0];
+		var barWidth = categoryLength * step;
+
+		console.log('[rect]', 'xpos', xPos, 'categoryLength', categoryLength, 'barWidth', barWidth);
+
+		chart.append('rect')
+			.attr('class', 'bar-background')
+			.style('stroke', 'white')
+			.attr('x', xPos)
+			.attr('y', 0)
+			.attr('width', barWidth)
+			.attr('height', height);
+
+		for (var j = -60; j <= 60; j += 20) {
+			chart.append('line')
+				.attr('class', function() {
+					if (j === 0) {
+						return 'zero-line';
+					} else {
+						return 'h-line';
+					}
+				})
+				.attr('x1', xPos)
+				.attr('y1', y(j))
+				.attr('x2', barWidth + xPos)
+				.attr('y2', y(j));
+		}
+
+		var xLabelPadding = 10;
+
+		chart.append('text')
+			.attr('class', 'x-axis-label') 
+			.attr('x', barWidth/2 + xPos) 
+			.attr('y', function() {
+				if (i === 0) { return height + xLabelPadding; }
+				if (i === 1) { return height + xLabelPadding + 25; }
+				if (i === 2) { return height + xLabelPadding; } 
+				if (i === 3) { return height + xLabelPadding + 12.5; }
+				if (i === 4) { return height + xLabelPadding + 25; }
+				if (i === 5) { return height + xLabelPadding + 12.5; }
+				if (i === 7) { return height + xLabelPadding;}
+				if (i === 11) { return height + xLabelPadding;}
+				else if (i % 2 === 0) { return height + xLabelPadding; } 
+				else if (i % 3 === 0) { return height + xLabelPadding + 12.5;} 
+				else { return height + xLabelPadding + 25; }
+			})
+			.attr('dy', '.35em')
+			.text(function() {
+				return d3.keys(catNames[i]);
+			});
+
+		var xLinePadding = 5;
+		chart.append('line')
+			.attr('class', 'x-axis-tick')
+			.attr('x1', barWidth/2 + xPos)
+			.attr('y1', height)
+			.attr('x2', barWidth/2 + xPos)
+			.attr('y2', function() {
+				if (i === 0) { return height + xLinePadding; }
+				if (i === 1) { return height + xLinePadding + 25; }
+				if (i === 2) { return height + xLinePadding; } 
+				if (i === 3) { return height + xLinePadding + 12.5; }
+				if (i === 4) { return height + xLinePadding + 25; }
+				if (i === 5) { return height + xLinePadding + 12.5; }
+				if (i === 7) { return height + xLinePadding;}
+				if (i === 11) { return height + xLinePadding;}
+				else if (i % 2 === 0) { return height + xLinePadding; } 
+				else if (i % 3 === 0) { return height + xLinePadding + 12.5;} 
+				else { return height + xLinePadding + 25; }
+			});
+
+		
+
+
+		previous = barWidth + padding + xPos;
+	}
+
+    // chart.selectAll('.bar')
+    // 	.data(catNames)
+    // 	.enter()
+    // 	.append('rect')
+    // 	.attr('class', 'bar-background')
+    // 	.style('stroke', 'white')
+    // 	.attr('x', function(d) {
+    // 		var t = d3.values(d)[0] * x.rangeBand();
+    // 		console.log('t', t, width);
+    // 		return t;
+    // 		// console.log('default', x2(d3.keys(d)[0]), 'target', d3.values(d)[0] * x.rangeBand());
+    // 		// return x2(d3.keys(d)[0]);
+    // 	})
+    // 	.attr('y', 0)
+    // 	.attr('width', function(d) {
+    // 		// var v = d3.values(d)[0];
+    // 		// console.log(v);
+    // 		return d3.values(d)[0] * x.rangeBand();
+    // 	})
+    // 	.attr('height', height);
+
+	var bar = chart.selectAll(".bar")
+	  	.data(data)
+		.enter();
+
+	// bar.append('rect')
+	// 	.attr('class', 'bar-background')
+	// 	.attr('x', function(d) {
+	// 		// console.log(d3.keys(d)[0]);
+	// 		return x(d3.keys(d)[0]);
+	// 	})
+	// 	.attr('y', 0)
+	// 	.attr('width', x.rangeBand())
+	// 	.attr('height', height);
+
+	bar.append("rect")
+        .attr('class', 'oppose-bar')
+        .attr("x", function(d) { 
+        	return x(d3.keys(d)[0]); 
+        })
+        .attr("y", function(d) {
+        	return height/2;
+        })
+        .attr('width', function(d) {
+        	return x.rangeBand();
+        })
+        .attr('height', function(d) {
+        	return h(d3.values(d)[0].oppose);
+        })
+        .on('mouseover', function(d) {
+        	showValues(d);
+        });
+
+    bar.append("rect")
+        .attr('class', 'support-bar')
+        .attr("x", function(d) { 
+        	return x(d3.keys(d)[0]); 
+        })
+        .attr("y", function(d) {
+        	return y(d3.values(d)[0].support);
+        })
+        .attr('width', function(d) {
+        	return x.rangeBand();
+        })
+        .attr('height', function(d) {
+        	return height/2 - y(d3.values(d)[0].support);
+        })
+        .on('mouseover', function(d) {
+        	showValues(d);
+        });
+
+
+    function showValues(data) {
+    	var key = d3.keys(data)[0];
+    	var val = d3.values(data)[0];
+    	console.log(key);
+    }
+
+}
+
+
+
+
+
+
+
+
+
+function supportChart(data) {
 	var margin = {top: 20, right: 30, bottom: 30, left: 150};
 	var width = $('#support-bar-chart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
@@ -949,7 +1229,9 @@ function opposeChart (data) {
 
 exports.run = run;
 
-},{"d3":9,"jquery":43,"queue-async":45}],8:[function(require,module,exports){
+},{"d3":9,"jquery":43,"queue-async":45,"underscore":47}],8:[function(require,module,exports){
+var d3 = require('d3');
+
 module.exports = {
 	zeroPad: function (num, numZeros) {
 		// Thank you: https://stackoverflow.com/questions/1267283/how-can-i-create-a-zerofilled-value-using-javascript
@@ -961,10 +1243,12 @@ module.exports = {
 	    }
 
 	    return zeroString+n;
-	}
+	},
+
+	currency: d3.format('$,.0f')
 
 };
-},{}],9:[function(require,module,exports){
+},{"d3":9}],9:[function(require,module,exports){
 !function() {
   var d3 = {
     version: "3.5.5"

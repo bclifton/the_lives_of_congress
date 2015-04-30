@@ -3,6 +3,7 @@ var $ = require('jquery');
 var typeahead = require('typeahead.js');
 var director = require('director');
 var Handlebars = require('handlebars');
+var states = require('./states');
 
 var everyone;
 
@@ -56,7 +57,6 @@ function loadPerson(id) {
 		var person = _.findWhere(data, {bioguide_id: id});
 		if (person) {
 			console.log(person);
-			
 			clearPerson();
 
 			components.map.run(person);
@@ -72,83 +72,6 @@ function loadPerson(id) {
 }
 
 
-// function filter(query) {
-// 	query = query.toLowerCase();
-
-// 	_.each(everyone, function(entry) {
-// 		var name = entry.first_name + ' ' + entry.last_name;
-// 		if (name.indexOf(query) > -1){
-// 			console.log('fuck');
-// 		}
-// 	});
-// }
-
-////////////////////////////////////////////////////////////
-
-
-var substringMatcher = function(strs) {
-  return function findMatches(q, cb) {
-    var matches, substringRegex;
- 
-    // an array that will be populated with substring matches
-    matches = [];
- 
-    // regex used to determine if a string contains the substring `q`
-    substrRegex = new RegExp(q, 'i');
- 
-    // iterate through the pool of strings and for any string that
-    // contains the substring `q`, add it to the `matches` array
-    $.each(strs, function(i, str) {
-      if (substrRegex.test(str.state)) {
-        matches.push(str);
-      }
-    });
- 
-	// var fullName = person.first_name + ' ' + person.last_name;
-
- //    $.each(people, function(i, person) {
-	//     if (substrRegex.test(person.state)) {
-	// 	    matches.push(person.name + ' ' person.state);
-	//     }
- //    });
-
-    cb(matches);
-  };
-};
- 
-
-getEveryone(function(){
-
-  $('#srch-term').typeahead({
-    hint: true,
-    highlight: true,
-    minLength: 1
-  },
-  {
-    name: 'states',
-    source: substringMatcher(everyone),
-    display: function(obj) {
-      console.log(obj);
-      return obj.first_name + ' ' + obj.last_name + ' - ' + obj.state
-    },
-    templates: {
-    empty: [
-      '<div class="empty-message">',
-        'unable to find any Best Picture winners that match the current query',
-      '</div>'
-    ].join('\n'),
-    suggestion: Handlebars.compile('<div><strong>{{first_name}} {{last_name}}</strong> – {{state}}</div>')
-  }
-  }).on('typeahead:selected', onAutocompleted);
-});
- 
-
-function onAutocompleted($e, datum) {
-	window.location = '#/' + datum.bioguide_id;
-}
-
-
-////////////////////////////////////////////////////////////
 
 var routes = {
 	'/': home,
@@ -158,4 +81,66 @@ var routes = {
 
 var router = director.Router(routes);
 
-router.init();
+
+////////////////////////////////////////////////////////////
+
+
+var matcher = function(everyone) {
+  return function findMatches(q, cb) {
+    var matches, substrRegex;
+    matches = [];
+    substrRegex = new RegExp(q, 'i');
+ 
+    
+
+    $.each(everyone, function(i, person) {
+    	var state = states[person.state];
+    	person.statename = state;
+	    if (substrRegex.test(state) || substrRegex.test(person.first_name) || substrRegex.test(person.last_name)) {
+	        matches.push(person);
+	    }
+    });
+
+    cb(matches);
+  };
+};
+ 
+
+getEveryone(function() {
+
+	$('#srch-term').typeahead({
+	    hint: true,
+	    highlight: false,
+	    minLength: 1
+	},
+	{
+	    name: 'congress',
+	    source: matcher(everyone),
+	    limit: 600,
+	    display: function(obj) {
+	      // console.log(obj)
+	      return obj.first_name + ' ' + obj.last_name + ' (' + states[obj.state] + ')';
+	    },
+	    templates: {
+		    empty: [
+		      '<div class="empty-message">',
+		        'No Results',
+		      '</div>'
+		    ].join('\n'),
+		    suggestion: Handlebars.compile('<div>{{first_name}} {{last_name}} ({{statename}})</div>')
+		}
+	}).on('typeahead:selected', onAutocompleted);
+
+	router.init();
+
+});
+ 
+
+function onAutocompleted($e, person) {
+	window.location = '#/' + person.bioguide_id;
+}
+
+
+
+
+

@@ -1,3 +1,5 @@
+var d3 = require('d3');
+
 module.exports = {
 	zeroPad: function (num, numZeros) {
 		// Thank you: https://stackoverflow.com/questions/1267283/how-can-i-create-a-zerofilled-value-using-javascript
@@ -9,6 +11,8 @@ module.exports = {
 	    }
 
 	    return zeroString+n;
-	}
+	},
+
+	currency: d3.format('$,.0f')
 
 };

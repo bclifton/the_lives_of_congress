@@ -1,3 +1,5 @@
+'use strict';
+
 var gulp = require('gulp');
 var plumber = require('gulp-plumber');
 var notify = require('gulp-notify');
@@ -5,6 +7,7 @@ var browserify = require('gulp-browserify');
 var sass = require('gulp-sass');
 var rename = require('gulp-rename');
 var concat = require('gulp-concat');
+// var livereload = require('gulp-livereload');
 
 
 var jsPath = './app/js/**/*.js';
@@ -21,7 +24,9 @@ gulp.task('browserify', function() {
       title: "Error"
     }))
     .pipe(rename('main.js'))
-    .pipe(gulp.dest('./public/js/'));
+    .pipe(gulp.dest('./public/js/'))
+    // .pipe(livereload())
+    ;
 });
 
 gulp.task('css', function() {
@@ -31,10 +36,13 @@ gulp.task('css', function() {
     .pipe(sass({
       //outputStyle: 'compressed'
     }))
-    .pipe(gulp.dest('./public/css/'));
+    .pipe(gulp.dest('./public/css/'))
+    // .pipe(livereload())
+    ;
 });
 
 gulp.task('watch', function() {
+  // livereload.listen();
   gulp.watch(jsPath, ['browserify']);
   gulp.watch(cssPath, ['css']);
 });
