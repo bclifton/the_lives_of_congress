@@ -4,7 +4,7 @@
   -o-background-size: cover;
   background-size: cover;
   background-repeat: no-repeat;
-  background-color: white; }
+  background-color: #e8e8e8; }
   #home h1 {
     font-family: 'Libre Baskerville' !important;
     text-align: center;
@@ -70,41 +70,13 @@ ul {
   list-style: none;
   padding-left: 0; }
 
-.navbar {
-  background-color: rgba(231, 231, 231, 0.95);
-  border: none;
-  background-image: none;
-  box-shadow: none;
-  margin: 0 15px; }
-  .navbar .btn-default {
-    background-image: none; }
-
-.navbar-header h4 {
-  margin-top: 0; }
-
-.nav li a {
-  font-size: 14px;
-  padding-top: 18px; }
-
-form.navbar-form {
-  margin-top: 10px;
-  padding-right: 0; }
-
-.navbar-brand {
-  font-size: 24px;
-  font-style: italic;
-  font-weight: 400; }
-
-input#srch-term {
-  border-radius: 0; }
-
-button.btn.btn-default {
-  background-image: none;
-  border-radius: 0; }
-
 .card {
   background-color: white;
-  margin: 0 15px 15px 15px; }
+  margin: 0 15px 15px 15px;
+  padding-top: 15px;
+  -webkit-box-shadow: 0px 8px 14px 0px rgba(77, 77, 77, 0.59);
+  -moz-box-shadow: 0px 8px 14px 0px rgba(77, 77, 77, 0.59);
+  box-shadow: 0px 8px 14px 0px rgba(77, 77, 77, 0.59); }
 
 #info-panel {
   background-color: white;
@@ -179,15 +151,6 @@ button.btn.btn-default {
 .bar {
   fill: #5c8100; }
 
-.bar-background {
-  fill: rgba(193, 186, 169, 0.2); }
-
-.oppose-bar {
-  fill: #bd2d28; }
-
-.support-bar {
-  fill: #0f8c78; }
-
 .axis text {
   font: 10px 'Source Sans Pro', sans-serif; }
 
@@ -230,15 +193,75 @@ button.btn.btn-default {
     font-size: 10px;
     line-height: 1; }
 
+.input-group {
+  font-family: 'Libre Baskerville';
+  font-weight: 400; }
+
+.navbar {
+  background-color: rgba(231, 231, 231, 0.95);
+  border: none;
+  background-image: none;
+  box-shadow: none;
+  margin: 0 15px; }
+  .navbar .btn-default {
+    background-image: none; }
+
+.navbar-header h4 {
+  margin-top: 5px; }
+
+.nav li a {
+  font-size: 14px;
+  padding-top: 18px; }
+
+form.navbar-form {
+  margin-top: 10px;
+  padding-right: 0; }
+
+.navbar-brand {
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 400; }
+
+.twitter-typeahead {
+  font-family: 'Libre Baskerville';
+  font-weight: 400; }
+
 .tt-menu {
   background-color: white;
   width: 100%;
   border: 1px solid rgba(193, 186, 169, 0.2);
   padding: 10px;
-  font-size: 14px !important;
+  font-size: 12px !important;
   -webkit-box-shadow: 0px 6px 10px -5px rgba(51, 51, 51, 0.41);
   -moz-box-shadow: 0px 6px 10px -5px rgba(51, 51, 51, 0.41);
   box-shadow: 0px 6px 10px -5px rgba(51, 51, 51, 0.41); }
+
+.tt-suggestion.tt-selectable {
+  border: 5px solid white; }
+  .tt-suggestion.tt-selectable:hover {
+    background-color: rgba(193, 186, 169, 0.2);
+    border: 5px solid rgba(246, 245, 243, 0.2); }
+
+.tt-dataset.tt-dataset-congress {
+  max-height: 400px;
+  overflow: scroll; }
+
+.tt-cursor {
+  background-color: rgba(193, 186, 169, 0.2);
+  border: 5px solid rgba(246, 245, 243, 0.2) !important; }
+
+input#srch-term {
+  border-radius: 0; }
+
+button.btn.btn-default {
+  background-image: none;
+  border-radius: 0; }
+
+input.form-control.typeahead.tt-hint {
+  width: 300px; }
+
+input#srch-term {
+  width: 300px; }
 
 .property {
   float: left;
@@ -295,3 +318,26 @@ span.income {
 
 span.value {
   font-weight: bold; }
+
+.bar-background {
+  fill: rgba(193, 186, 169, 0.2); }
+
+.oppose-bar {
+  fill: #bd2d28; }
+
+.support-bar {
+  fill: #0f8c78; }
+
+.zero-line {
+  stroke: rgba(193, 186, 169, 0.6); }
+
+.h-line {
+  stroke: rgba(193, 186, 169, 0.2); }
+
+.x-axis-label {
+  text-anchor: middle; }
+
+.x-axis-tick {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges; }
