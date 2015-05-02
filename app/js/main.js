@@ -141,6 +141,3 @@ function onAutocompleted($e, person) {
 }
 
 
-
-
-
