@@ -3,14 +3,8 @@ var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
 var states = require('./states');
+var util = require('./utilities');
 
-
-var currency = d3.format('$,.0f');
-
-function capitalize(string) {
- 	// Thank you: https://stackoverflow.com/users/2359289/nicol%C3%B2
-    return string.replace(/^./, capitalize.call.bind("".toUpperCase));
-}
 
 function run(person) {
 	console.log(person);
@@ -37,9 +31,9 @@ function run(person) {
 	
 	
 
-	var worth_high = currency(person.net_high);
-	var worth_low = currency(person.net_low);
-	var estimatedWorth = currency((+person.net_high + +person.net_low) / 2);
+	var worth_high = util.currency(person.net_high);
+	var worth_low = util.currency(person.net_low);
+	var estimatedWorth = util.currency((+person.net_high + +person.net_low) / 2);
 	// $('#legislator-worth').append('<p class="networth">' + worth_low + ' - ' + worth_high  + '</p>');
 	$('#networth').html(estimatedWorth);
 
@@ -51,7 +45,7 @@ function run(person) {
 	$('#committee-member').empty();
 
 	for (var i = 0; i < committeesMembership.length; i++) {
-		var membershipStatus = capitalize(committeesMembership[i].replace('_', ' '));
+		var membershipStatus = util.capitalize(committeesMembership[i].replace('_', ' '));
 		var membershipType = 'committee-' + committeesMembership[i];
 
 
@@ -71,22 +65,24 @@ function run(person) {
 }
 
 exports.run = run;
-},{"./states":6,"d3":9,"jquery":43,"underscore":47}],2:[function(require,module,exports){
+},{"./states":6,"./utilities":9,"d3":10,"jquery":44,"underscore":48}],2:[function(require,module,exports){
 var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
 var queue = require('queue-async');
-var util = require('./utilities');
 
-function run(id) {
-	console.log('financialAssets.running / id: ', id);
-	load(id);
+var util = require('./utilities');
+var tooltip = require('./tooltip');
+
+function run(cid) {
+	console.log('financialAssets.running / cid: ', cid);
+	load(cid);
 }
 
-function load(id) {
-	d3.json('assets/N00027694_asset_totals.json', function(error, d) {
+function load(cid) {
+	d3.json('assets/financialassets/' + cid + '_asset_totals.json', function(error, d) {
 		if (error) {
-			renderError();
+			renderError(error);
 		} else {
 			total = 0;
 			data = [];
@@ -111,7 +107,7 @@ function load(id) {
 function render(data, total) {
 	
 	$('#assets-bar-chart-title').append(' ' + util.currency(total));
-	var margin = {top: 10, right: 30, bottom: 30, left: 150};
+	var margin = {top: 10, right: 20, bottom: 30, left: 150};
 	var width = $('#assets-bar-chart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
 
@@ -171,7 +167,16 @@ function render(data, total) {
 	    .attr('x', function(d) { return 0; })
 	    .attr('y', function(d) { return y(d.sector); })
 	    .attr('width', function(d) { return x(d.percent); })
-	    .attr('height', y.rangeBand());
+	    .attr('height', y.rangeBand())
+	    .on('mouseover', function(d) {
+	    	showTooltip(d);
+	    })
+	    .on('mousemove', function(d) {
+	    	showTooltip(d);
+	    })
+	    .on('mouseout', function() {
+	    	tooltip.off();
+	    });;
 	
 	bar.append("text")
 	    .attr("x", function(d) { return x(d.percent) + 5; })
@@ -190,13 +195,22 @@ function render(data, total) {
 	    });
 }
 
-function renderError() {
-	console.log('support.renderError');
+function renderError(error) {
+	console.log('financialAssets.renderError', error);
+}
+
+
+function showTooltip(data) {
+	var title = data.sector;
+	var money = util.currency(data.money);
+	var percent = util.percent(data.percent);
+	var content = '<p><strong>' + title + '</strong>: ' + money + ' (' + percent + '%)</p>';
+	tooltip.on(content);
 }
 
 exports.run = run;
 
-},{"./utilities":8,"d3":9,"jquery":43,"queue-async":45,"underscore":47}],3:[function(require,module,exports){
+},{"./tooltip":8,"./utilities":9,"d3":10,"jquery":44,"queue-async":46,"underscore":48}],3:[function(require,module,exports){
 var _ = require('underscore');
 var $ = require('jquery');
 var typeahead = require('typeahead.js');
@@ -261,7 +275,7 @@ function loadPerson(id) {
 			components.map.run(person);
 			components.basic.run(person);
 			components.support.run(id);
-			components.financialassets.run(id);
+			components.financialassets.run(person.opensecrets_id);
 			components.realestate.run(person.opensecrets_id);
 		} else {
 			//replace with 404 like page
@@ -344,7 +358,7 @@ function onAutocompleted($e, person) {
 
 
 
-},{"./basic":1,"./financialAssets":2,"./map":4,"./realestate":5,"./states":6,"./support":7,"director":10,"handlebars":31,"jquery":43,"typeahead.js":46,"underscore":47}],4:[function(require,module,exports){
+},{"./basic":1,"./financialAssets":2,"./map":4,"./realestate":5,"./states":6,"./support":7,"director":11,"handlebars":32,"jquery":44,"typeahead.js":47,"underscore":48}],4:[function(require,module,exports){
 var _ = require('underscore');
 var L = require('leaflet');
 var queue = require('queue-async');
@@ -363,6 +377,8 @@ function run(person) {
 
 function load(person) {
 	var district = util.zeroPad(person.district, 2);
+
+	console.log(person.state + district);
 
 	p = person;
 
@@ -396,8 +412,7 @@ function findRealEstate(cid, locationsData) {
 }
 
 function manage(error, districtsData, locationsData) {
-	
-	if (map != undefined) { map.remove(); }
+	if (map != undefined) { map.remove(); } // clears any existing map
 
 	if (error) {
 		console.log(error);
@@ -412,7 +427,8 @@ function render(districtsData, locationsData) {
 	var properties = findRealEstate(p.opensecrets_id, locationsData);
 
 	var accessToken = 'pk.eyJ1IjoiYmNsaWZ0b24iLCJhIjoicWNXT0Z6OCJ9.JvNO6GIbU8BZ-8LLSEwz2Q';
-	var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v4/bclifton.9f0ca136/{z}/{x}/{y}.png?access_token=' + accessToken, {
+	var mapID = 'bclifton.9f0ca136';
+	var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v4/' + mapID + '/{z}/{x}/{y}.png?access_token=' + accessToken, {
 	    attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>',
 	    detectRetina: true
 	});
@@ -421,16 +437,8 @@ function render(districtsData, locationsData) {
 	    center: [39.8282, -98.5795],
 	    zoom: 2
 	  })
-	.addLayer(mapboxTiles)
-	;
+	.addLayer(mapboxTiles);
 
-	function style(feature) {
-		return {
-			fillColor: '#e6842a',
-			fillOpacity: 0.5,
-			weight: 0
-		};
-	}
 
 	// function highlightFeature(e) {
 	//  	    var layer = e.target;
@@ -453,6 +461,14 @@ function render(districtsData, locationsData) {
 
  	function zoomToFeature(e) {
  	    map.fitBounds(e.target.getBounds());
+ 	}
+
+ 	function style(feature) {
+ 		return {
+ 			fillColor: '#e6842a',
+ 			fillOpacity: 0.5,
+ 			weight: 0
+ 		};
  	}
 
  	function onEachFeature(feature, layer) {
@@ -499,7 +515,9 @@ function render(districtsData, locationsData) {
 }
 
 exports.run = run;
-},{"./utilities":8,"leaflet":44,"queue-async":45,"underscore":47}],5:[function(require,module,exports){
+},{"./utilities":9,"leaflet":45,"queue-async":46,"underscore":48}],5:[function(require,module,exports){
+var _ = require('underscore');
+var $ = require('jquery');
 var d3 = require('d3');
 var Handlebars = require('handlebars');
 
@@ -513,12 +531,23 @@ function run(id) {
 	load(id);
 }
 
+function checkForID(data, id) {
+  return _.find(data, function(entry) {
+    return entry.cid === id;
+  });
+}
+
 function load(id) {
 	d3.csv('assets/property_with_income.csv', function(error, data){
 		if (error) {
-			renderError();
+			renderError(error);
 		} else {
-			render(data, id);
+      var test = checkForID(data, id);
+      if (typeof(test) != "undefined") {
+        render(data, id);
+      } else {
+        renderError('did not pass test');
+      }
 		}
 	});
 }
@@ -550,6 +579,8 @@ function render(data, id) {
   var property_template = Handlebars.compile(template_source);
 
   var html = property_template(data);
+  $('#realestate-descrip p').empty();
+  $('#realestate-descrip').append('<p>Click on the image to open Google Street View</p>');
   d3.select('#properties-wrapper').html(html);
   d3.selectAll('.property')
     .data(data.items)
@@ -710,13 +741,15 @@ Handlebars.registerHelper('display_value', function(minv, maxv){
 });
 
 
-function renderError() {
-	console.log('support.renderError');
+function renderError(error) {
+  $('#realestate-descrip p').empty();
+  var html = '<h4 class="error-description">There are no known real estate assets.</h4>';
+  d3.select('#properties-wrapper').html(html);
 }
 
 exports.run = run;
 
-},{"./states":6,"d3":9,"handlebars":31}],6:[function(require,module,exports){
+},{"./states":6,"d3":10,"handlebars":32,"jquery":44,"underscore":48}],6:[function(require,module,exports){
 module.exports = {
   "AL": "Alabama",
   "AK": "Alaska",
@@ -785,6 +818,8 @@ var $ = require('jquery');
 var d3 = require('d3');
 var queue = require('queue-async');
 
+var tooltip = require('./tooltip');
+
 var legID;
 
 function run(id) {
@@ -825,7 +860,7 @@ function load(id) {
 
 function render(error, categories, data) {
 	if (error) {
-		renderError();
+		renderError(error);
 	} else {
 		var d = [];
 		_.each(data[legID], function(value, key) {
@@ -854,8 +889,8 @@ function render(error, categories, data) {
 	}
 }
 
-function renderError() {
-	console.log('support.renderError');
+function renderError(error) {
+	console.log('support.renderError', error);
 }
 
 
@@ -870,9 +905,9 @@ function comboChart(categories, data, catNames) {
 			return previousValue + d3.values(currentValue)[0];
 		}
 	});
-	console.log('total', total);
+	// console.log('total', total);
 
-	var margin = {top: 20, right: 30, bottom: 70, left: 20};
+	var margin = {top: 20, right: 20, bottom: 70, left: 40};
 	var width = $('#support-bar-chart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
 	var rangePadding = 0.1;
@@ -882,7 +917,7 @@ function comboChart(categories, data, catNames) {
 		.domain(categories.map(function(d) { return d.industry; }))
 	    .rangeBands([0, width], rangePadding + 0.002, 0);
 
-	console.log('x.range',x.range());
+	// console.log('x.range',x.range());
 
 	var y = d3.scale.linear()
 		.domain([-70, 70])
@@ -905,7 +940,8 @@ function comboChart(categories, data, catNames) {
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
-	    .orient("left");
+	    .orient("left")
+	    .tickPadding(2);
 
 	var chart = d3.select("#support-bar-chart")
 		.append('svg')
@@ -915,19 +951,25 @@ function comboChart(categories, data, catNames) {
 	    .append("g")  
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	// chart.append("g")
-	//     .attr("class", "x axis")
-	//     .attr("transform", "translate(0," + height + ")")
-	//     .call(xAxis)
-	//     .selectAll("text")
-	//         .style("text-anchor", "end")
-	//         .attr("dx", "-.8em")
-	//         .attr("dy", ".15em")
-	//         .attr("transform", "rotate(-65)");
-
 	chart.append("g")
 	  	.attr("class", "y axis")
 	  	.call(yAxis);
+
+	// chart.append("text")
+	//     .attr("class", "y label-support")
+	//     .attr("text-anchor", "start")
+	//     .attr("y", 6)
+	//     .attr('x', 10)
+	//     .attr("dy", ".75em")
+	//     .text("Number of Supporting Organizations");
+
+	// chart.append("text")
+	//     .attr("class", "y label-oppose")
+	//     .attr("text-anchor", "start")
+	//     .attr("y", height - 10)
+	//     .attr('x', 10)
+	//     .attr("dy", ".75em")
+	//     .text("Number of Opposing Organizations");
 
 
 	var previous;
@@ -943,7 +985,7 @@ function comboChart(categories, data, catNames) {
 		var categoryLength = d3.values(catNames[i])[0];
 		var barWidth = categoryLength * step;
 
-		console.log('[rect]', 'xpos', xPos, 'categoryLength', categoryLength, 'barWidth', barWidth);
+		// console.log('[rect]', 'xpos', xPos, 'categoryLength', categoryLength, 'barWidth', barWidth);
 
 		chart.append('rect')
 			.attr('class', 'bar-background')
@@ -1067,7 +1109,13 @@ function comboChart(categories, data, catNames) {
         	return h(d3.values(d)[0].oppose);
         })
         .on('mouseover', function(d) {
-        	showValues(d);
+        	showTooltipOppose(d);
+        })
+        .on('mousemove', function(d) {
+        	showTooltipOppose(d);
+        })
+        .on('mouseout', function() {
+        	tooltip.off();
         });
 
     bar.append("rect")
@@ -1085,16 +1133,35 @@ function comboChart(categories, data, catNames) {
         	return height/2 - y(d3.values(d)[0].support);
         })
         .on('mouseover', function(d) {
-        	showValues(d);
+        	showTooltipSupport(d);
+        })
+        .on('mousemove', function(d) {
+        	showTooltipSupport(d);
+        })
+        .on('mouseout', function() {
+        	tooltip.off();
         });
 
+}
 
-    function showValues(data) {
-    	var key = d3.keys(data)[0];
-    	var val = d3.values(data)[0];
-    	console.log(key);
-    }
+function showTooltipOppose(data) {
 
+	var key = d3.keys(data)[0]
+	var val = d3.values(data)[0].oppose;
+	console.log(val);
+
+	var content = '<p><strong>' + key + '</strong> organizations opposed bills ' + val + ' times</p>';
+	tooltip.on(content);
+}
+
+function showTooltipSupport(data) {
+
+	var key = d3.keys(data)[0]
+	var val = d3.values(data)[0].support;
+	console.log(val);
+
+	var content = '<p><strong>' + key + '</strong> organizations supported bills ' + val + ' times</p>';
+	tooltip.on(content);
 }
 
 
@@ -1102,134 +1169,147 @@ function comboChart(categories, data, catNames) {
 
 
 
+// function supportChart(data) {
+// 	var margin = {top: 20, right: 30, bottom: 30, left: 150};
+// 	var width = $('#support-bar-chart').width() - margin.left - margin.right;
+// 	var height = 300 - margin.top - margin.bottom;
 
+// 	var y = d3.scale.ordinal()
+// 		.domain(data.map(function(d) { return d[0]; }))
+// 	    .rangeRoundBands([0, height], 0.1);
 
+// 	var x = d3.scale.linear()
+// 		.domain([0, d3.max(data, function(d) { return d[1]; })])
+// 	    .range([0, width]);
 
-function supportChart(data) {
-	var margin = {top: 20, right: 30, bottom: 30, left: 150};
-	var width = $('#support-bar-chart').width() - margin.left - margin.right;
-	var height = 300 - margin.top - margin.bottom;
+// 	var xAxis = d3.svg.axis()
+// 	    .scale(x)
+// 	    .orient("bottom");
 
-	var y = d3.scale.ordinal()
-		.domain(data.map(function(d) { return d[0]; }))
-	    .rangeRoundBands([0, height], 0.1);
+// 	var yAxis = d3.svg.axis()
+// 	    .scale(y)
+// 	    .orient("left");
 
-	var x = d3.scale.linear()
-		.domain([0, d3.max(data, function(d) { return d[1]; })])
-	    .range([0, width]);
+// 	var chart = d3.select("#support-bar-chart")
+// 		.append('svg')
+// 		.attr('class', 'chart')
+// 	    .attr("width", width + margin.left + margin.right)
+// 	    .attr("height", height + margin.top + margin.bottom)
+// 	  .append("g")
+// 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom");
+// 	// chart.append("g")
+// 	//     .attr("class", "x axis")
+// 	//     .attr("transform", "translate(0," + height + ")")
+// 	//     .call(xAxis);
 
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
+// 	chart.append("g")
+// 	  	.attr("class", "y axis")
+// 	  	.call(yAxis);
 
-	var chart = d3.select("#support-bar-chart")
-		.append('svg')
-		.attr('class', 'chart')
-	    .attr("width", width + margin.left + margin.right)
-	    .attr("height", height + margin.top + margin.bottom)
-	  .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+//     chart.selectAll(".bar")
+//       	.data(data)
+//     	.enter()
+//     	.append("rect")
+//         .attr('class', 'bar-background')
+//         .attr("x", 0)
+//         .attr("y", function(d) { return y(d[0]); })
+//         .attr("width", width)
+//         .attr("height", y.rangeBand());
 
-	// chart.append("g")
-	//     .attr("class", "x axis")
-	//     .attr("transform", "translate(0," + height + ")")
-	//     .call(xAxis);
-
-	chart.append("g")
-	  	.attr("class", "y axis")
-	  	.call(yAxis);
-
-    chart.selectAll(".bar")
-      	.data(data)
-    	.enter()
-    	.append("rect")
-        .attr('class', 'bar-background')
-        .attr("x", 0)
-        .attr("y", function(d) { return y(d[0]); })
-        .attr("width", width)
-        .attr("height", y.rangeBand());
-
-	chart.selectAll(".bar")
-	  	.data(data)
-		.enter()
-		.append("rect")
-	    .attr("class", "support-bar")
-	    .attr("x", 0)
-	    .attr("y", function(d) { return y(d[0]); })
-	    .attr("width", function(d) { return x(d[1]); })
-	    .attr("height", y.rangeBand());
-}
+// 	chart.selectAll(".bar")
+// 	  	.data(data)
+// 		.enter()
+// 		.append("rect")
+// 	    .attr("class", "support-bar")
+// 	    .attr("x", 0)
+// 	    .attr("y", function(d) { return y(d[0]); })
+// 	    .attr("width", function(d) { return x(d[1]); })
+// 	    .attr("height", y.rangeBand());
+// }
 
 
 
 
-function opposeChart (data) {
-	var margin = {top: 20, right: 30, bottom: 30, left: 150};
-	var width = $('#oppose-bar-chart').width() - margin.left - margin.right;
-	var height = 300 - margin.top - margin.bottom;
+// function opposeChart (data) {
+// 	var margin = {top: 20, right: 30, bottom: 30, left: 150};
+// 	var width = $('#oppose-bar-chart').width() - margin.left - margin.right;
+// 	var height = 300 - margin.top - margin.bottom;
 
-	var y = d3.scale.ordinal()
-		.domain(data.map(function(d) { return d[0]; }))
-	    .rangeRoundBands([0, height], 0.1);
+// 	var y = d3.scale.ordinal()
+// 		.domain(data.map(function(d) { return d[0]; }))
+// 	    .rangeRoundBands([0, height], 0.1);
 
 
-	var x = d3.scale.linear()
-		.domain([0, d3.max(data, function(d) { return d[2]; })])
-	    .range([0, width]);
+// 	var x = d3.scale.linear()
+// 		.domain([0, d3.max(data, function(d) { return d[2]; })])
+// 	    .range([0, width]);
 
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom");
+// 	var xAxis = d3.svg.axis()
+// 	    .scale(x)
+// 	    .orient("bottom");
 
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
+// 	var yAxis = d3.svg.axis()
+// 	    .scale(y)
+// 	    .orient("left");
 
-	var chart = d3.select("#oppose-bar-chart")
-		.append('svg')
-		.attr('class', 'chart')
-	    .attr("width", width + margin.left + margin.right)
-	    .attr("height", height + margin.top + margin.bottom)
-	  	.append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+// 	var chart = d3.select("#oppose-bar-chart")
+// 		.append('svg')
+// 		.attr('class', 'chart')
+// 	    .attr("width", width + margin.left + margin.right)
+// 	    .attr("height", height + margin.top + margin.bottom)
+// 	  	.append("g")
+// 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	// chart.append("g")
-	//     .attr("class", "x axis")
-	//     .attr("transform", "translate(0," + height + ")")
-	//     .call(xAxis);
+// 	// chart.append("g")
+// 	//     .attr("class", "x axis")
+// 	//     .attr("transform", "translate(0," + height + ")")
+// 	//     .call(xAxis);
 
-	chart.append("g")
-	  	.attr("class", "y axis")
-	  	.call(yAxis);
+// 	chart.append("g")
+// 	  	.attr("class", "y axis")
+// 	  	.call(yAxis);
 
-	chart.selectAll(".bar")
-	  	.data(data)
-		.enter()
-		.append("rect")
-	    .attr('class', 'bar-background')
-	    .attr("x", 0)
-	    .attr("y", function(d) { return y(d[0]); })
-	    .attr("width", width)
-	    .attr("height", y.rangeBand());
+// 	chart.selectAll(".bar")
+// 	  	.data(data)
+// 		.enter()
+// 		.append("rect")
+// 	    .attr('class', 'bar-background')
+// 	    .attr("x", 0)
+// 	    .attr("y", function(d) { return y(d[0]); })
+// 	    .attr("width", width)
+// 	    .attr("height", y.rangeBand());
 
-	chart.selectAll(".bar")
-	  	.data(data)
-		.enter()
-		.append("rect")
-	    .attr("class", "oppose-bar")
-	    .attr("x", 0)
-	    .attr("y", function(d) { return y(d[0]); })
-	    .attr("width", function(d) { return x(d[2]); })
-	    .attr("height", y.rangeBand());
-}
+// 	chart.selectAll(".bar")
+// 	  	.data(data)
+// 		.enter()
+// 		.append("rect")
+// 	    .attr("class", "oppose-bar")
+// 	    .attr("x", 0)
+// 	    .attr("y", function(d) { return y(d[0]); })
+// 	    .attr("width", function(d) { return x(d[2]); })
+// 	    .attr("height", y.rangeBand());
+// }
 
 exports.run = run;
 
-},{"d3":9,"jquery":43,"queue-async":45,"underscore":47}],8:[function(require,module,exports){
+},{"./tooltip":8,"d3":10,"jquery":44,"queue-async":46,"underscore":48}],8:[function(require,module,exports){
+var $ = require('jquery');
+
+module.exports = {
+    on: function(content) {
+        $("#tooltip")
+            .html(content)
+            .css("visibility", "visible")
+            .css('left', (event.pageX + 20) + "px")
+            .css('top', (event.pageY - 10) + "px");
+    },
+    off: function() {
+        $("#tooltip").empty();
+        $("#tooltip").css("visibility", "hidden");
+    }
+};
+},{"jquery":44}],9:[function(require,module,exports){
 var d3 = require('d3');
 
 module.exports = {
@@ -1245,10 +1325,16 @@ module.exports = {
 	    return zeroString+n;
 	},
 
-	currency: d3.format('$,.0f')
+	 capitalize: function(string) {
+	 	// Thank you: https://stackoverflow.com/users/2359289/nicol%C3%B2
+	    return string.replace(/^./, this.capitalize.call.bind("".toUpperCase));
+	},
+
+	currency: d3.format('$,.0f'),
+	percent: d3.format('.4n')
 
 };
-},{"d3":9}],9:[function(require,module,exports){
+},{"d3":10}],10:[function(require,module,exports){
 !function() {
   var d3 = {
     version: "3.5.5"
@@ -10753,7 +10839,7 @@ module.exports = {
   if (typeof define === "function" && define.amd) define(d3); else if (typeof module === "object" && module.exports) module.exports = d3;
   this.d3 = d3;
 }();
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 
 
 //
@@ -11479,9 +11565,9 @@ Router.prototype.mount = function(routes, path) {
 
 
 }(typeof exports === "object" ? exports : window));
-},{}],11:[function(require,module,exports){
-
 },{}],12:[function(require,module,exports){
+
+},{}],13:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -11709,7 +11795,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("oMfpAn"))
-},{"oMfpAn":13}],13:[function(require,module,exports){
+},{"oMfpAn":14}],14:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -11774,7 +11860,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -11844,7 +11930,7 @@ inst['default'] = inst;
 exports['default'] = inst;
 module.exports = exports['default'];
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./handlebars.runtime":15,"./handlebars/compiler/ast":17,"./handlebars/compiler/base":18,"./handlebars/compiler/compiler":20,"./handlebars/compiler/javascript-compiler":22,"./handlebars/compiler/visitor":25}],15:[function(require,module,exports){
+},{"./handlebars.runtime":16,"./handlebars/compiler/ast":18,"./handlebars/compiler/base":19,"./handlebars/compiler/compiler":21,"./handlebars/compiler/javascript-compiler":23,"./handlebars/compiler/visitor":26}],16:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -11913,7 +11999,7 @@ Handlebars['default'] = Handlebars;
 exports['default'] = Handlebars;
 module.exports = exports['default'];
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./handlebars/base":16,"./handlebars/exception":27,"./handlebars/runtime":28,"./handlebars/safe-string":29,"./handlebars/utils":30}],16:[function(require,module,exports){
+},{"./handlebars/base":17,"./handlebars/exception":28,"./handlebars/runtime":29,"./handlebars/safe-string":30,"./handlebars/utils":31}],17:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -12187,7 +12273,7 @@ function createFrame(object) {
 }
 
 /* [args, ]options */
-},{"./exception":27,"./utils":30}],17:[function(require,module,exports){
+},{"./exception":28,"./utils":31}],18:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -12340,7 +12426,7 @@ var AST = {
 // must modify the object to operate properly.
 exports['default'] = AST;
 module.exports = exports['default'];
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -12387,7 +12473,7 @@ function parse(input, options) {
   var strip = new _WhitespaceControl2['default']();
   return strip.accept(_parser2['default'].parse(input));
 }
-},{"../utils":30,"./ast":17,"./helpers":21,"./parser":23,"./whitespace-control":26}],19:[function(require,module,exports){
+},{"../utils":31,"./ast":18,"./helpers":22,"./parser":24,"./whitespace-control":27}],20:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -12552,7 +12638,7 @@ exports['default'] = CodeGen;
 module.exports = exports['default'];
 
 /* NOP */
-},{"../utils":30,"source-map":32}],20:[function(require,module,exports){
+},{"../utils":31,"source-map":33}],21:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -13080,7 +13166,7 @@ function transformLiteralToPath(sexpr) {
     sexpr.path = new _AST2['default'].PathExpression(false, 0, [literal.original + ''], literal.original + '', literal.loc);
   }
 }
-},{"../exception":27,"../utils":30,"./ast":17}],21:[function(require,module,exports){
+},{"../exception":28,"../utils":31,"./ast":18}],22:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -13216,7 +13302,7 @@ function prepareBlock(openBlock, program, inverseAndProgram, close, inverted, lo
 
   return new this.BlockStatement(openBlock.path, openBlock.params, openBlock.hash, program, inverse, openBlock.strip, inverseStrip, close && close.strip, this.locInfo(locInfo));
 }
-},{"../exception":27}],22:[function(require,module,exports){
+},{"../exception":28}],23:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -14281,7 +14367,7 @@ function strictLookup(requireTerminal, compiler, parts, type) {
 
 exports['default'] = JavaScriptCompiler;
 module.exports = exports['default'];
-},{"../base":16,"../exception":27,"../utils":30,"./code-gen":19}],23:[function(require,module,exports){
+},{"../base":17,"../exception":28,"../utils":31,"./code-gen":20}],24:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -14963,7 +15049,7 @@ var handlebars = (function () {
 
 /* jshint ignore:end */
 module.exports = exports["default"];
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -15129,7 +15215,7 @@ PrintVisitor.prototype.HashPair = function (pair) {
   return pair.key + '=' + this.accept(pair.value);
 };
 /*eslint-enable new-cap */
-},{"./visitor":25}],25:[function(require,module,exports){
+},{"./visitor":26}],26:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -15262,7 +15348,7 @@ Visitor.prototype = {
 exports['default'] = Visitor;
 module.exports = exports['default'];
 /* content */ /* comment */ /* path */ /* string */ /* number */ /* bool */ /* literal */ /* literal */
-},{"../exception":27,"./ast":17}],26:[function(require,module,exports){
+},{"../exception":28,"./ast":18}],27:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -15475,7 +15561,7 @@ function omitLeft(body, i, multiple) {
 
 exports['default'] = WhitespaceControl;
 module.exports = exports['default'];
-},{"./visitor":25}],27:[function(require,module,exports){
+},{"./visitor":26}],28:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15514,7 +15600,7 @@ Exception.prototype = new Error();
 
 exports['default'] = Exception;
 module.exports = exports['default'];
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -15747,7 +15833,7 @@ function initData(context, data) {
   }
   return data;
 }
-},{"./base":16,"./exception":27,"./utils":30}],29:[function(require,module,exports){
+},{"./base":17,"./exception":28,"./utils":31}],30:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15762,7 +15848,7 @@ SafeString.prototype.toString = SafeString.prototype.toHTML = function () {
 
 exports['default'] = SafeString;
 module.exports = exports['default'];
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15878,7 +15964,7 @@ function blockParams(params, ids) {
 function appendContextPath(contextPath, id) {
   return (contextPath ? contextPath + '.' : '') + id;
 }
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 // USAGE:
 // var handlebars = require('handlebars');
 /* eslint-disable no-var */
@@ -15905,7 +15991,7 @@ if (typeof require !== 'undefined' && require.extensions) {
   require.extensions['.hbs'] = extension;
 }
 
-},{"../dist/cjs/handlebars":14,"../dist/cjs/handlebars/compiler/printer":24,"fs":11}],32:[function(require,module,exports){
+},{"../dist/cjs/handlebars":15,"../dist/cjs/handlebars/compiler/printer":25,"fs":12}],33:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -15915,7 +16001,7 @@ exports.SourceMapGenerator = require('./source-map/source-map-generator').Source
 exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
 exports.SourceNode = require('./source-map/source-node').SourceNode;
 
-},{"./source-map/source-map-consumer":38,"./source-map/source-map-generator":39,"./source-map/source-node":40}],33:[function(require,module,exports){
+},{"./source-map/source-map-consumer":39,"./source-map/source-map-generator":40,"./source-map/source-node":41}],34:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16014,7 +16100,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":41,"amdefine":42}],34:[function(require,module,exports){
+},{"./util":42,"amdefine":43}],35:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16158,7 +16244,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./base64":35,"amdefine":42}],35:[function(require,module,exports){
+},{"./base64":36,"amdefine":43}],36:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16202,7 +16288,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":42}],36:[function(require,module,exports){
+},{"amdefine":43}],37:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16284,7 +16370,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":42}],37:[function(require,module,exports){
+},{"amdefine":43}],38:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2014 Mozilla Foundation and contributors
@@ -16372,7 +16458,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":41,"amdefine":42}],38:[function(require,module,exports){
+},{"./util":42,"amdefine":43}],39:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16949,7 +17035,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":33,"./base64-vlq":34,"./binary-search":36,"./util":41,"amdefine":42}],39:[function(require,module,exports){
+},{"./array-set":34,"./base64-vlq":35,"./binary-search":37,"./util":42,"amdefine":43}],40:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -17351,7 +17437,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":33,"./base64-vlq":34,"./mapping-list":37,"./util":41,"amdefine":42}],40:[function(require,module,exports){
+},{"./array-set":34,"./base64-vlq":35,"./mapping-list":38,"./util":42,"amdefine":43}],41:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -17767,7 +17853,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./source-map-generator":39,"./util":41,"amdefine":42}],41:[function(require,module,exports){
+},{"./source-map-generator":40,"./util":42,"amdefine":43}],42:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -18088,7 +18174,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":42}],42:[function(require,module,exports){
+},{"amdefine":43}],43:[function(require,module,exports){
 (function (process,__filename){
 /** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 0.1.0 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
@@ -18391,7 +18477,7 @@ function amdefine(module, requireFn) {
 module.exports = amdefine;
 
 }).call(this,require("oMfpAn"),"/../../node_modules/handlebars/node_modules/source-map/node_modules/amdefine/amdefine.js")
-},{"oMfpAn":13,"path":12}],43:[function(require,module,exports){
+},{"oMfpAn":14,"path":13}],44:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
@@ -27598,7 +27684,7 @@ return jQuery;
 
 }));
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 /*
  Leaflet, a JavaScript library for mobile-friendly interactive maps. http://leafletjs.com
  (c) 2010-2013, Vladimir Agafonkin
@@ -36779,7 +36865,7 @@ L.Map.include({
 
 
 }(window, document));
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function() {
   var slice = [].slice;
 
@@ -36861,7 +36947,7 @@ L.Map.include({
   else this.queue = queue;
 })();
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /*!
  * typeahead.js 0.11.0
  * https://github.com/twitter/typeahead.js
@@ -39295,7 +39381,7 @@ L.Map.include({
         }
     })();
 });
-},{"jquery":43}],47:[function(require,module,exports){
+},{"jquery":44}],48:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
