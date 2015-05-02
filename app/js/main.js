@@ -62,7 +62,7 @@ function loadPerson(id) {
 			components.map.run(person);
 			components.basic.run(person);
 			components.support.run(id);
-			components.financialassets.run(id);
+			components.financialassets.run(person.opensecrets_id);
 			components.realestate.run(person.opensecrets_id);
 		} else {
 			//replace with 404 like page

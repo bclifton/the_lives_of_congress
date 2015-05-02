@@ -13,6 +13,12 @@ module.exports = {
 	    return zeroString+n;
 	},
 
-	currency: d3.format('$,.0f')
+	 capitalize: function(string) {
+	 	// Thank you: https://stackoverflow.com/users/2359289/nicol%C3%B2
+	    return string.replace(/^./, this.capitalize.call.bind("".toUpperCase));
+	},
+
+	currency: d3.format('$,.0f'),
+	percent: d3.format('.4n')
 
 };

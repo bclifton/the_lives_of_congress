@@ -3,7 +3,6 @@
 $label-fontsize: 10px;
 
 body {
-  // width: 98%;
   margin: 0;
   padding: 0;
   padding-top: 60px;
@@ -221,4 +220,10 @@ ul {
 .input-group-btn:last-child>.btn, .input-group-btn:last-child>.btn-group {
   margin-left: -1px;
   margin-bottom: 10px;
+}
+
+.error-description {
+  font-family: 'Source Sans Pro', sans-serif;
+  color: lighten($text-darkgray, 60);
+  letter-spacing: 0.5px;
 }

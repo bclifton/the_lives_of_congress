@@ -29,3 +29,13 @@
 	stroke: #000;
 	shape-rendering: crispEdges;
 }
+
+.y {
+
+	.label-support {
+		fill: $support-color;
+	}
+	.label-oppose {
+		fill: $oppose-color;
+	}
+}

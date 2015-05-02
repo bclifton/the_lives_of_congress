@@ -3,6 +3,8 @@ var $ = require('jquery');
 var d3 = require('d3');
 var queue = require('queue-async');
 
+var tooltip = require('./tooltip');
+
 var legID;
 
 function run(id) {
@@ -43,7 +45,7 @@ function load(id) {
 
 function render(error, categories, data) {
 	if (error) {
-		renderError();
+		renderError(error);
 	} else {
 		var d = [];
 		_.each(data[legID], function(value, key) {
@@ -72,8 +74,8 @@ function render(error, categories, data) {
 	}
 }
 
-function renderError() {
-	console.log('support.renderError');
+function renderError(error) {
+	console.log('support.renderError', error);
 }
 
 
@@ -88,9 +90,9 @@ function comboChart(categories, data, catNames) {
 			return previousValue + d3.values(currentValue)[0];
 		}
 	});
-	console.log('total', total);
+	// console.log('total', total);
 
-	var margin = {top: 20, right: 30, bottom: 70, left: 20};
+	var margin = {top: 20, right: 20, bottom: 70, left: 40};
 	var width = $('#support-bar-chart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
 	var rangePadding = 0.1;
@@ -100,7 +102,7 @@ function comboChart(categories, data, catNames) {
 		.domain(categories.map(function(d) { return d.industry; }))
 	    .rangeBands([0, width], rangePadding + 0.002, 0);
 
-	console.log('x.range',x.range());
+	// console.log('x.range',x.range());
 
 	var y = d3.scale.linear()
 		.domain([-70, 70])
@@ -123,7 +125,8 @@ function comboChart(categories, data, catNames) {
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
-	    .orient("left");
+	    .orient("left")
+	    .tickPadding(2);
 
 	var chart = d3.select("#support-bar-chart")
 		.append('svg')
@@ -133,19 +136,25 @@ function comboChart(categories, data, catNames) {
 	    .append("g")  
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	// chart.append("g")
-	//     .attr("class", "x axis")
-	//     .attr("transform", "translate(0," + height + ")")
-	//     .call(xAxis)
-	//     .selectAll("text")
-	//         .style("text-anchor", "end")
-	//         .attr("dx", "-.8em")
-	//         .attr("dy", ".15em")
-	//         .attr("transform", "rotate(-65)");
-
 	chart.append("g")
 	  	.attr("class", "y axis")
 	  	.call(yAxis);
+
+	// chart.append("text")
+	//     .attr("class", "y label-support")
+	//     .attr("text-anchor", "start")
+	//     .attr("y", 6)
+	//     .attr('x', 10)
+	//     .attr("dy", ".75em")
+	//     .text("Number of Supporting Organizations");
+
+	// chart.append("text")
+	//     .attr("class", "y label-oppose")
+	//     .attr("text-anchor", "start")
+	//     .attr("y", height - 10)
+	//     .attr('x', 10)
+	//     .attr("dy", ".75em")
+	//     .text("Number of Opposing Organizations");
 
 
 	var previous;
@@ -161,7 +170,7 @@ function comboChart(categories, data, catNames) {
 		var categoryLength = d3.values(catNames[i])[0];
 		var barWidth = categoryLength * step;
 
-		console.log('[rect]', 'xpos', xPos, 'categoryLength', categoryLength, 'barWidth', barWidth);
+		// console.log('[rect]', 'xpos', xPos, 'categoryLength', categoryLength, 'barWidth', barWidth);
 
 		chart.append('rect')
 			.attr('class', 'bar-background')
@@ -285,7 +294,13 @@ function comboChart(categories, data, catNames) {
         	return h(d3.values(d)[0].oppose);
         })
         .on('mouseover', function(d) {
-        	showValues(d);
+        	showTooltipOppose(d);
+        })
+        .on('mousemove', function(d) {
+        	showTooltipOppose(d);
+        })
+        .on('mouseout', function() {
+        	tooltip.off();
         });
 
     bar.append("rect")
@@ -303,16 +318,35 @@ function comboChart(categories, data, catNames) {
         	return height/2 - y(d3.values(d)[0].support);
         })
         .on('mouseover', function(d) {
-        	showValues(d);
+        	showTooltipSupport(d);
+        })
+        .on('mousemove', function(d) {
+        	showTooltipSupport(d);
+        })
+        .on('mouseout', function() {
+        	tooltip.off();
         });
 
+}
 
-    function showValues(data) {
-    	var key = d3.keys(data)[0];
-    	var val = d3.values(data)[0];
-    	console.log(key);
-    }
+function showTooltipOppose(data) {
 
+	var key = d3.keys(data)[0]
+	var val = d3.values(data)[0].oppose;
+	console.log(val);
+
+	var content = '<p><strong>' + key + '</strong> organizations opposed bills ' + val + ' times</p>';
+	tooltip.on(content);
+}
+
+function showTooltipSupport(data) {
+
+	var key = d3.keys(data)[0]
+	var val = d3.values(data)[0].support;
+	console.log(val);
+
+	var content = '<p><strong>' + key + '</strong> organizations supported bills ' + val + ' times</p>';
+	tooltip.on(content);
 }
 
 
@@ -320,129 +354,126 @@ function comboChart(categories, data, catNames) {
 
 
 
+// function supportChart(data) {
+// 	var margin = {top: 20, right: 30, bottom: 30, left: 150};
+// 	var width = $('#support-bar-chart').width() - margin.left - margin.right;
+// 	var height = 300 - margin.top - margin.bottom;
 
+// 	var y = d3.scale.ordinal()
+// 		.domain(data.map(function(d) { return d[0]; }))
+// 	    .rangeRoundBands([0, height], 0.1);
 
+// 	var x = d3.scale.linear()
+// 		.domain([0, d3.max(data, function(d) { return d[1]; })])
+// 	    .range([0, width]);
 
-function supportChart(data) {
-	var margin = {top: 20, right: 30, bottom: 30, left: 150};
-	var width = $('#support-bar-chart').width() - margin.left - margin.right;
-	var height = 300 - margin.top - margin.bottom;
+// 	var xAxis = d3.svg.axis()
+// 	    .scale(x)
+// 	    .orient("bottom");
 
-	var y = d3.scale.ordinal()
-		.domain(data.map(function(d) { return d[0]; }))
-	    .rangeRoundBands([0, height], 0.1);
+// 	var yAxis = d3.svg.axis()
+// 	    .scale(y)
+// 	    .orient("left");
 
-	var x = d3.scale.linear()
-		.domain([0, d3.max(data, function(d) { return d[1]; })])
-	    .range([0, width]);
+// 	var chart = d3.select("#support-bar-chart")
+// 		.append('svg')
+// 		.attr('class', 'chart')
+// 	    .attr("width", width + margin.left + margin.right)
+// 	    .attr("height", height + margin.top + margin.bottom)
+// 	  .append("g")
+// 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom");
+// 	// chart.append("g")
+// 	//     .attr("class", "x axis")
+// 	//     .attr("transform", "translate(0," + height + ")")
+// 	//     .call(xAxis);
 
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
+// 	chart.append("g")
+// 	  	.attr("class", "y axis")
+// 	  	.call(yAxis);
 
-	var chart = d3.select("#support-bar-chart")
-		.append('svg')
-		.attr('class', 'chart')
-	    .attr("width", width + margin.left + margin.right)
-	    .attr("height", height + margin.top + margin.bottom)
-	  .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+//     chart.selectAll(".bar")
+//       	.data(data)
+//     	.enter()
+//     	.append("rect")
+//         .attr('class', 'bar-background')
+//         .attr("x", 0)
+//         .attr("y", function(d) { return y(d[0]); })
+//         .attr("width", width)
+//         .attr("height", y.rangeBand());
 
-	// chart.append("g")
-	//     .attr("class", "x axis")
-	//     .attr("transform", "translate(0," + height + ")")
-	//     .call(xAxis);
-
-	chart.append("g")
-	  	.attr("class", "y axis")
-	  	.call(yAxis);
-
-    chart.selectAll(".bar")
-      	.data(data)
-    	.enter()
-    	.append("rect")
-        .attr('class', 'bar-background')
-        .attr("x", 0)
-        .attr("y", function(d) { return y(d[0]); })
-        .attr("width", width)
-        .attr("height", y.rangeBand());
-
-	chart.selectAll(".bar")
-	  	.data(data)
-		.enter()
-		.append("rect")
-	    .attr("class", "support-bar")
-	    .attr("x", 0)
-	    .attr("y", function(d) { return y(d[0]); })
-	    .attr("width", function(d) { return x(d[1]); })
-	    .attr("height", y.rangeBand());
-}
+// 	chart.selectAll(".bar")
+// 	  	.data(data)
+// 		.enter()
+// 		.append("rect")
+// 	    .attr("class", "support-bar")
+// 	    .attr("x", 0)
+// 	    .attr("y", function(d) { return y(d[0]); })
+// 	    .attr("width", function(d) { return x(d[1]); })
+// 	    .attr("height", y.rangeBand());
+// }
 
 
 
 
-function opposeChart (data) {
-	var margin = {top: 20, right: 30, bottom: 30, left: 150};
-	var width = $('#oppose-bar-chart').width() - margin.left - margin.right;
-	var height = 300 - margin.top - margin.bottom;
+// function opposeChart (data) {
+// 	var margin = {top: 20, right: 30, bottom: 30, left: 150};
+// 	var width = $('#oppose-bar-chart').width() - margin.left - margin.right;
+// 	var height = 300 - margin.top - margin.bottom;
 
-	var y = d3.scale.ordinal()
-		.domain(data.map(function(d) { return d[0]; }))
-	    .rangeRoundBands([0, height], 0.1);
+// 	var y = d3.scale.ordinal()
+// 		.domain(data.map(function(d) { return d[0]; }))
+// 	    .rangeRoundBands([0, height], 0.1);
 
 
-	var x = d3.scale.linear()
-		.domain([0, d3.max(data, function(d) { return d[2]; })])
-	    .range([0, width]);
+// 	var x = d3.scale.linear()
+// 		.domain([0, d3.max(data, function(d) { return d[2]; })])
+// 	    .range([0, width]);
 
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom");
+// 	var xAxis = d3.svg.axis()
+// 	    .scale(x)
+// 	    .orient("bottom");
 
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
+// 	var yAxis = d3.svg.axis()
+// 	    .scale(y)
+// 	    .orient("left");
 
-	var chart = d3.select("#oppose-bar-chart")
-		.append('svg')
-		.attr('class', 'chart')
-	    .attr("width", width + margin.left + margin.right)
-	    .attr("height", height + margin.top + margin.bottom)
-	  	.append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+// 	var chart = d3.select("#oppose-bar-chart")
+// 		.append('svg')
+// 		.attr('class', 'chart')
+// 	    .attr("width", width + margin.left + margin.right)
+// 	    .attr("height", height + margin.top + margin.bottom)
+// 	  	.append("g")
+// 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	// chart.append("g")
-	//     .attr("class", "x axis")
-	//     .attr("transform", "translate(0," + height + ")")
-	//     .call(xAxis);
+// 	// chart.append("g")
+// 	//     .attr("class", "x axis")
+// 	//     .attr("transform", "translate(0," + height + ")")
+// 	//     .call(xAxis);
 
-	chart.append("g")
-	  	.attr("class", "y axis")
-	  	.call(yAxis);
+// 	chart.append("g")
+// 	  	.attr("class", "y axis")
+// 	  	.call(yAxis);
 
-	chart.selectAll(".bar")
-	  	.data(data)
-		.enter()
-		.append("rect")
-	    .attr('class', 'bar-background')
-	    .attr("x", 0)
-	    .attr("y", function(d) { return y(d[0]); })
-	    .attr("width", width)
-	    .attr("height", y.rangeBand());
+// 	chart.selectAll(".bar")
+// 	  	.data(data)
+// 		.enter()
+// 		.append("rect")
+// 	    .attr('class', 'bar-background')
+// 	    .attr("x", 0)
+// 	    .attr("y", function(d) { return y(d[0]); })
+// 	    .attr("width", width)
+// 	    .attr("height", y.rangeBand());
 
-	chart.selectAll(".bar")
-	  	.data(data)
-		.enter()
-		.append("rect")
-	    .attr("class", "oppose-bar")
-	    .attr("x", 0)
-	    .attr("y", function(d) { return y(d[0]); })
-	    .attr("width", function(d) { return x(d[2]); })
-	    .attr("height", y.rangeBand());
-}
+// 	chart.selectAll(".bar")
+// 	  	.data(data)
+// 		.enter()
+// 		.append("rect")
+// 	    .attr("class", "oppose-bar")
+// 	    .attr("x", 0)
+// 	    .attr("y", function(d) { return y(d[0]); })
+// 	    .attr("width", function(d) { return x(d[2]); })
+// 	    .attr("height", y.rangeBand());
+// }
 
 exports.run = run;

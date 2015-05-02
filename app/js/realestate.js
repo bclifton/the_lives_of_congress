@@ -1,3 +1,5 @@
+var _ = require('underscore');
+var $ = require('jquery');
 var d3 = require('d3');
 var Handlebars = require('handlebars');
 
@@ -11,12 +13,23 @@ function run(id) {
 	load(id);
 }
 
+function checkForID(data, id) {
+  return _.find(data, function(entry) {
+    return entry.cid === id;
+  });
+}
+
 function load(id) {
 	d3.csv('assets/property_with_income.csv', function(error, data){
 		if (error) {
-			renderError();
+			renderError(error);
 		} else {
-			render(data, id);
+      var test = checkForID(data, id);
+      if (typeof(test) != "undefined") {
+        render(data, id);
+      } else {
+        renderError('did not pass test');
+      }
 		}
 	});
 }
@@ -48,6 +61,8 @@ function render(data, id) {
   var property_template = Handlebars.compile(template_source);
 
   var html = property_template(data);
+  $('#realestate-descrip p').empty();
+  $('#realestate-descrip').append('<p>Click on the image to open Google Street View</p>');
   d3.select('#properties-wrapper').html(html);
   d3.selectAll('.property')
     .data(data.items)
@@ -208,8 +223,10 @@ Handlebars.registerHelper('display_value', function(minv, maxv){
 });
 
 
-function renderError() {
-	console.log('support.renderError');
+function renderError(error) {
+  $('#realestate-descrip p').empty();
+  var html = '<h4 class="error-description">There are no known real estate assets.</h4>';
+  d3.select('#properties-wrapper').html(html);
 }
 
 exports.run = run;

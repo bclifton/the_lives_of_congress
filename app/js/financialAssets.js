@@ -2,17 +2,19 @@ var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
 var queue = require('queue-async');
-var util = require('./utilities');
 
-function run(id) {
-	console.log('financialAssets.running / id: ', id);
-	load(id);
+var util = require('./utilities');
+var tooltip = require('./tooltip');
+
+function run(cid) {
+	console.log('financialAssets.running / cid: ', cid);
+	load(cid);
 }
 
-function load(id) {
-	d3.json('assets/N00027694_asset_totals.json', function(error, d) {
+function load(cid) {
+	d3.json('assets/financialassets/' + cid + '_asset_totals.json', function(error, d) {
 		if (error) {
-			renderError();
+			renderError(error);
 		} else {
 			total = 0;
 			data = [];
@@ -37,7 +39,7 @@ function load(id) {
 function render(data, total) {
 	
 	$('#assets-bar-chart-title').append(' ' + util.currency(total));
-	var margin = {top: 10, right: 30, bottom: 30, left: 150};
+	var margin = {top: 10, right: 20, bottom: 30, left: 150};
 	var width = $('#assets-bar-chart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
 
@@ -97,7 +99,16 @@ function render(data, total) {
 	    .attr('x', function(d) { return 0; })
 	    .attr('y', function(d) { return y(d.sector); })
 	    .attr('width', function(d) { return x(d.percent); })
-	    .attr('height', y.rangeBand());
+	    .attr('height', y.rangeBand())
+	    .on('mouseover', function(d) {
+	    	showTooltip(d);
+	    })
+	    .on('mousemove', function(d) {
+	    	showTooltip(d);
+	    })
+	    .on('mouseout', function() {
+	    	tooltip.off();
+	    });;
 	
 	bar.append("text")
 	    .attr("x", function(d) { return x(d.percent) + 5; })
@@ -116,8 +127,17 @@ function render(data, total) {
 	    });
 }
 
-function renderError() {
-	console.log('support.renderError');
+function renderError(error) {
+	console.log('financialAssets.renderError', error);
+}
+
+
+function showTooltip(data) {
+	var title = data.sector;
+	var money = util.currency(data.money);
+	var percent = util.percent(data.percent);
+	var content = '<p><strong>' + title + '</strong>: ' + money + ' (' + percent + '%)</p>';
+	tooltip.on(content);
 }
 
 exports.run = run;

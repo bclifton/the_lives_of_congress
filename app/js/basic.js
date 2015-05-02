@@ -2,14 +2,8 @@ var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
 var states = require('./states');
+var util = require('./utilities');
 
-
-var currency = d3.format('$,.0f');
-
-function capitalize(string) {
- 	// Thank you: https://stackoverflow.com/users/2359289/nicol%C3%B2
-    return string.replace(/^./, capitalize.call.bind("".toUpperCase));
-}
 
 function run(person) {
 	console.log(person);
@@ -36,9 +30,9 @@ function run(person) {
 	
 	
 
-	var worth_high = currency(person.net_high);
-	var worth_low = currency(person.net_low);
-	var estimatedWorth = currency((+person.net_high + +person.net_low) / 2);
+	var worth_high = util.currency(person.net_high);
+	var worth_low = util.currency(person.net_low);
+	var estimatedWorth = util.currency((+person.net_high + +person.net_low) / 2);
 	// $('#legislator-worth').append('<p class="networth">' + worth_low + ' - ' + worth_high  + '</p>');
 	$('#networth').html(estimatedWorth);
 
@@ -50,7 +44,7 @@ function run(person) {
 	$('#committee-member').empty();
 
 	for (var i = 0; i < committeesMembership.length; i++) {
-		var membershipStatus = capitalize(committeesMembership[i].replace('_', ' '));
+		var membershipStatus = util.capitalize(committeesMembership[i].replace('_', ' '));
 		var membershipType = 'committee-' + committeesMembership[i];
 
 

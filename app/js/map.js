@@ -17,6 +17,8 @@ function run(person) {
 function load(person) {
 	var district = util.zeroPad(person.district, 2);
 
+	console.log(person.state + district);
+
 	p = person;
 
 	var districts_filepath = 'assets/districts/' + person.state + district + '_geo.json';
@@ -49,8 +51,7 @@ function findRealEstate(cid, locationsData) {
 }
 
 function manage(error, districtsData, locationsData) {
-	
-	if (map != undefined) { map.remove(); }
+	if (map != undefined) { map.remove(); } // clears any existing map
 
 	if (error) {
 		console.log(error);
@@ -65,7 +66,8 @@ function render(districtsData, locationsData) {
 	var properties = findRealEstate(p.opensecrets_id, locationsData);
 
 	var accessToken = 'pk.eyJ1IjoiYmNsaWZ0b24iLCJhIjoicWNXT0Z6OCJ9.JvNO6GIbU8BZ-8LLSEwz2Q';
-	var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v4/bclifton.9f0ca136/{z}/{x}/{y}.png?access_token=' + accessToken, {
+	var mapID = 'bclifton.9f0ca136';
+	var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v4/' + mapID + '/{z}/{x}/{y}.png?access_token=' + accessToken, {
 	    attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>',
 	    detectRetina: true
 	});
@@ -74,16 +76,8 @@ function render(districtsData, locationsData) {
 	    center: [39.8282, -98.5795],
 	    zoom: 2
 	  })
-	.addLayer(mapboxTiles)
-	;
+	.addLayer(mapboxTiles);
 
-	function style(feature) {
-		return {
-			fillColor: '#e6842a',
-			fillOpacity: 0.5,
-			weight: 0
-		};
-	}
 
 	// function highlightFeature(e) {
 	//  	    var layer = e.target;
@@ -106,6 +100,14 @@ function render(districtsData, locationsData) {
 
  	function zoomToFeature(e) {
  	    map.fitBounds(e.target.getBounds());
+ 	}
+
+ 	function style(feature) {
+ 		return {
+ 			fillColor: '#e6842a',
+ 			fillOpacity: 0.5,
+ 			weight: 0
+ 		};
  	}
 
  	function onEachFeature(feature, layer) {
