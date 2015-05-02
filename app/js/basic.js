@@ -11,7 +11,7 @@ function run(person) {
 	var infoWidth = $('#info-panel').width();
 	var w = (infoWidth - 147) / 2;
 	$('#portrait').css('margin-left', w).css('margin-right', w);
-	$('#portrait').append('<img src="img/' + person.bioguide_id + '.jpg" class="clip-ellipse">');
+	$('#portrait').append('<img src="https://bclifton.s3.amazonaws.com/' + person.bioguide_id + '.jpg" class="clip-ellipse">');
 
 	var type;
 	if (person.type === 'rep') {
