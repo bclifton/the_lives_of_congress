@@ -251,6 +251,32 @@ var components = {
 	basic: require('./basic')
 };
 
+function setupAutcomplete(){
+	$('#srch-term').typeahead({
+	    hint: true,
+	    highlight: false,
+	    minLength: 1
+	},
+	{
+	    name: 'congress',
+	    source: matcher(everyone),
+	    limit: 600,
+	    display: function(obj) {
+	      return obj.first_name + ' ' + obj.last_name + ' (' + states[obj.state] + ')';
+	    },
+	    templates: {
+		    empty: [
+		      '<div class="empty-message">',
+		        'No Results',
+		      '</div>'
+		    ].join('\n'),
+		    suggestion: Handlebars.compile('<div>{{first_name}} {{last_name}} ({{statename}})</div>')
+		}
+	}).on('typeahead:selected', onAutocompleted);
+
+	console.log('setting up autocomplekjasj')
+}
+
 
 function getEveryone(cb) {
 	if (!everyone) {
@@ -271,6 +297,7 @@ function home() {
 	var homepage_template_source = d3.select('#homepage-template').html();
 	var homepage_template = Handlebars.compile(homepage_template_source);
 	d3.select('#all-content').html(homepage_template());
+	setupAutcomplete();
 }
 
 // function about() {
@@ -309,6 +336,8 @@ function loadPerson(id) {
 			components.support.run(id);
 			components.financialassets.run(person.opensecrets_id);
 			components.realestate.run(person.opensecrets_id);
+
+			setupAutcomplete();
 		} else {
 			//replace with 404 like page
 			console.log('person not found');
@@ -356,38 +385,16 @@ var matcher = function(everyone) {
 };
 
 
-if (typeof($('#home')) !== undefined) {
-	var homepage_template_source = d3.select('#homepage-template').html();
-	var homepage_template = Handlebars.compile(homepage_template_source);
-	d3.select('#all-content').html(homepage_template());
-} 
 
 getEveryone(function() {
 	console.log('getEveryone', everyone);
-	$('#srch-term').typeahead({
-	    hint: true,
-	    highlight: false,
-	    minLength: 1
-	},
-	{
-	    name: 'congress',
-	    source: matcher(everyone),
-	    limit: 600,
-	    display: function(obj) {
-	      return obj.first_name + ' ' + obj.last_name + ' (' + states[obj.state] + ')';
-	    },
-	    templates: {
-		    empty: [
-		      '<div class="empty-message">',
-		        'No Results',
-		      '</div>'
-		    ].join('\n'),
-		    suggestion: Handlebars.compile('<div>{{first_name}} {{last_name}} ({{statename}})</div>')
-		}
-	}).on('typeahead:selected', onAutocompleted);
-
+	if (typeof($('#home')) !== undefined) {
+		var homepage_template_source = d3.select('#homepage-template').html();
+		var homepage_template = Handlebars.compile(homepage_template_source);
+		d3.select('#all-content').html(homepage_template());
+		setupAutcomplete();
+	} 
 	router.init();
-
 });
  
 
