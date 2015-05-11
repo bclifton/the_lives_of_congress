@@ -7,7 +7,7 @@ var util = require('./utilities');
 
 
 function run(person) {
-	console.log(person);
+	// console.log(person);
 
 	var infoWidth = $('#info-panel').width();
 	var w = (infoWidth - 147) / 2;
@@ -50,7 +50,6 @@ function run(person) {
 
 
 		var target = '#committee-' + committeesMembership[i];
-		console.log('target', target);
 		$(target).append('<li style="float:left;"><h5>' + membershipStatus +'</h5><ul id="sub-' + membershipType + '"></ul></li>');
 		var membership = committeesMembership[i];
 		_.each(person.committees[committeesMembership[i]], function(item) {
@@ -255,24 +254,23 @@ var components = {
 
 function getEveryone(cb) {
 	if (!everyone) {
+		console.log('getEveryone:no one');
 		d3.json('assets/legislator-current_info.json', function(error, data) {
 			everyone = data;
 			cb(everyone);
 		});
 	} else {
+		console.log('getEveryone:everyone');
 		cb(everyone);
 	}
 }
 
 function home() {
-	console.log("HOME!");
 	// clearPerson();
-	// $('body').css('background-image', 'url(https://the-lives-of-congress.s3.amazonaws.com/capital1.jpg)');
-
+	$('body').css('background-image', 'url(https://the-lives-of-congress.s3.amazonaws.com/capital1.jpg)');
 	var homepage_template_source = d3.select('#homepage-template').html();
 	var homepage_template = Handlebars.compile(homepage_template_source);
-	d3.select('body').html(homepage_template());
-
+	d3.select('#all-content').html(homepage_template());
 }
 
 // function about() {
@@ -299,15 +297,13 @@ function loadPerson(id) {
 
 	var card_template_source = d3.select('#card-template').html();
 	var card_template = Handlebars.compile(card_template_source);
-	d3.select('body').html(card_template());
-
+	d3.select('#all-content').html(card_template());
 
 	getEveryone(function(data){
+		console.log('loadPerson.getEveryone', everyone);
 		var person = _.findWhere(data, {bioguide_id: id});
 		if (person) {
-			console.log(person);
 			clearPerson();
-
 			components.map.run(person);
 			components.basic.run(person);
 			components.support.run(id);
@@ -316,29 +312,26 @@ function loadPerson(id) {
 		} else {
 			//replace with 404 like page
 			console.log('person not found');
+			home(); // temporary 404...	
 		}
 	});
 }
 
 
-var allroutes = function() {
-	var route = window.location.hash.slice(2);
-};
-
-
+// var allroutes = function() {
+// 	var route = window.location.hash.slice(2);
+// };
 
 var routes = {
 	'/': home,
-	// '/#': home,
-	// '/About': about,
     '/:id': loadPerson
 };
 
 var router = director.Router(routes);
 
-router.configure({
-    on: allroutes
-});
+// router.configure({
+//     on: allroutes
+// });
 
 
 ////////////////////////////////////////////////////////////
@@ -350,8 +343,6 @@ var matcher = function(everyone) {
     matches = [];
     substrRegex = new RegExp(q, 'i');
  
-    
-
     $.each(everyone, function(i, person) {
     	var state = states[person.state];
     	person.statename = state;
@@ -368,11 +359,11 @@ var matcher = function(everyone) {
 if (typeof($('#home')) !== undefined) {
 	var homepage_template_source = d3.select('#homepage-template').html();
 	var homepage_template = Handlebars.compile(homepage_template_source);
-	d3.select('body').html(homepage_template());
+	d3.select('#all-content').html(homepage_template());
 } 
 
 getEveryone(function() {
-
+	console.log('getEveryone', everyone);
 	$('#srch-term').typeahead({
 	    hint: true,
 	    highlight: false,
@@ -383,7 +374,6 @@ getEveryone(function() {
 	    source: matcher(everyone),
 	    limit: 600,
 	    display: function(obj) {
-	      // console.log(obj)
 	      return obj.first_name + ' ' + obj.last_name + ' (' + states[obj.state] + ')';
 	    },
 	    templates: {
@@ -427,7 +417,7 @@ function run(person) {
 function load(person) {
 	var district = util.zeroPad(person.district, 2);
 
-	console.log(person.state + district);
+	// console.log(person.state + district);
 
 	p = person;
 
@@ -602,7 +592,7 @@ function load(id) {
 }
 
 function render(data, id) {
-  // console.log(data, id);
+  // console.log('realestate', data, id);
 
   var graphic_template_source = d3.select('#realestate-template').html();
   var graphic_template = Handlebars.compile(graphic_template_source);
@@ -796,6 +786,7 @@ Handlebars.registerHelper('display_value', function(minv, maxv){
 
 
 function renderError(error) {
+  
   var template_source = d3.select("#error-template").html();
   var property_template = Handlebars.compile(template_source);
   var data = {'errorMessage':'There are no known Real Estate assets.'};
@@ -984,7 +975,7 @@ function comboChart(categories, data, catNames) {
 	} else {
 		max = opposeMax;
 	}
-	console.log(max, supportMax, opposeMax);
+	// console.log(max, supportMax, opposeMax);
 
 
 	var margin = {top: 20, right: 20, bottom: 70, left: 40};
@@ -1222,151 +1213,21 @@ function comboChart(categories, data, catNames) {
 }
 
 function showTooltipOppose(data) {
-
 	var key = d3.keys(data)[0]
 	var val = d3.values(data)[0].oppose;
-	console.log(val);
 
 	var content = '<p><strong>' + key + '</strong> organizations opposed bills ' + val + ' times</p>';
 	tooltip.on(content);
 }
 
 function showTooltipSupport(data) {
-
 	var key = d3.keys(data)[0]
 	var val = d3.values(data)[0].support;
-	console.log(val);
 
 	var content = '<p><strong>' + key + '</strong> organizations supported bills ' + val + ' times</p>';
 	tooltip.on(content);
 }
 
-
-
-
-
-
-// function supportChart(data) {
-// 	var margin = {top: 20, right: 30, bottom: 30, left: 150};
-// 	var width = $('#support-bar-chart').width() - margin.left - margin.right;
-// 	var height = 300 - margin.top - margin.bottom;
-
-// 	var y = d3.scale.ordinal()
-// 		.domain(data.map(function(d) { return d[0]; }))
-// 	    .rangeRoundBands([0, height], 0.1);
-
-// 	var x = d3.scale.linear()
-// 		.domain([0, d3.max(data, function(d) { return d[1]; })])
-// 	    .range([0, width]);
-
-// 	var xAxis = d3.svg.axis()
-// 	    .scale(x)
-// 	    .orient("bottom");
-
-// 	var yAxis = d3.svg.axis()
-// 	    .scale(y)
-// 	    .orient("left");
-
-// 	var chart = d3.select("#support-bar-chart")
-// 		.append('svg')
-// 		.attr('class', 'chart')
-// 	    .attr("width", width + margin.left + margin.right)
-// 	    .attr("height", height + margin.top + margin.bottom)
-// 	  .append("g")
-// 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-// 	// chart.append("g")
-// 	//     .attr("class", "x axis")
-// 	//     .attr("transform", "translate(0," + height + ")")
-// 	//     .call(xAxis);
-
-// 	chart.append("g")
-// 	  	.attr("class", "y axis")
-// 	  	.call(yAxis);
-
-//     chart.selectAll(".bar")
-//       	.data(data)
-//     	.enter()
-//     	.append("rect")
-//         .attr('class', 'bar-background')
-//         .attr("x", 0)
-//         .attr("y", function(d) { return y(d[0]); })
-//         .attr("width", width)
-//         .attr("height", y.rangeBand());
-
-// 	chart.selectAll(".bar")
-// 	  	.data(data)
-// 		.enter()
-// 		.append("rect")
-// 	    .attr("class", "support-bar")
-// 	    .attr("x", 0)
-// 	    .attr("y", function(d) { return y(d[0]); })
-// 	    .attr("width", function(d) { return x(d[1]); })
-// 	    .attr("height", y.rangeBand());
-// }
-
-
-
-
-// function opposeChart (data) {
-// 	var margin = {top: 20, right: 30, bottom: 30, left: 150};
-// 	var width = $('#oppose-bar-chart').width() - margin.left - margin.right;
-// 	var height = 300 - margin.top - margin.bottom;
-
-// 	var y = d3.scale.ordinal()
-// 		.domain(data.map(function(d) { return d[0]; }))
-// 	    .rangeRoundBands([0, height], 0.1);
-
-
-// 	var x = d3.scale.linear()
-// 		.domain([0, d3.max(data, function(d) { return d[2]; })])
-// 	    .range([0, width]);
-
-// 	var xAxis = d3.svg.axis()
-// 	    .scale(x)
-// 	    .orient("bottom");
-
-// 	var yAxis = d3.svg.axis()
-// 	    .scale(y)
-// 	    .orient("left");
-
-// 	var chart = d3.select("#oppose-bar-chart")
-// 		.append('svg')
-// 		.attr('class', 'chart')
-// 	    .attr("width", width + margin.left + margin.right)
-// 	    .attr("height", height + margin.top + margin.bottom)
-// 	  	.append("g")
-// 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-// 	// chart.append("g")
-// 	//     .attr("class", "x axis")
-// 	//     .attr("transform", "translate(0," + height + ")")
-// 	//     .call(xAxis);
-
-// 	chart.append("g")
-// 	  	.attr("class", "y axis")
-// 	  	.call(yAxis);
-
-// 	chart.selectAll(".bar")
-// 	  	.data(data)
-// 		.enter()
-// 		.append("rect")
-// 	    .attr('class', 'bar-background')
-// 	    .attr("x", 0)
-// 	    .attr("y", function(d) { return y(d[0]); })
-// 	    .attr("width", width)
-// 	    .attr("height", y.rangeBand());
-
-// 	chart.selectAll(".bar")
-// 	  	.data(data)
-// 		.enter()
-// 		.append("rect")
-// 	    .attr("class", "oppose-bar")
-// 	    .attr("x", 0)
-// 	    .attr("y", function(d) { return y(d[0]); })
-// 	    .attr("width", function(d) { return x(d[2]); })
-// 	    .attr("height", y.rangeBand());
-// }
 
 exports.run = run;
 
