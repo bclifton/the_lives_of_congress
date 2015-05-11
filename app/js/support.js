@@ -1,6 +1,7 @@
 var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
+var Handlebars = require('handlebars');
 var queue = require('queue-async');
 
 var tooltip = require('./tooltip');
@@ -75,13 +76,24 @@ function render(error, categories, data) {
 }
 
 function renderError(error) {
-	console.log('support.renderError', error);
+	var template_source = d3.select("#error-template").html();
+	var property_template = Handlebars.compile(template_source);
+	var data = {'errorMessage':'There are no known Industry Support.'};
+	var html = property_template(data);
+	// $('#realestate-description p').empty();
+	d3.select('#outsider-support-graphics').html(html);
 }
 
 
 function comboChart(categories, data, catNames) {
 	// console.log(catNames);
 	// console.log(data);
+
+	var graphic_template_source = d3.select('#support-template').html();
+	var graphic_template = Handlebars.compile(graphic_template_source);
+	d3.select('#outsider-support-graphics').html(graphic_template());
+
+
 
 	var total = catNames.reduce(function(previousValue, currentValue, i) {
 		if (i === 1) {
@@ -90,7 +102,18 @@ function comboChart(categories, data, catNames) {
 			return previousValue + d3.values(currentValue)[0];
 		}
 	});
-	// console.log('total', total);
+
+	var opposeMax = d3.max(data, function(d) { return d3.values(d)[0].oppose; });
+	var supportMax = d3.max(data, function(d) { return d3.values(d)[0].support; });
+
+	var max;
+	if (supportMax >= opposeMax) {
+		max = supportMax;
+	} else {
+		max = opposeMax;
+	}
+	console.log(max, supportMax, opposeMax);
+
 
 	var margin = {top: 20, right: 20, bottom: 70, left: 40};
 	var width = $('#support-bar-chart').width() - margin.left - margin.right;
@@ -102,14 +125,12 @@ function comboChart(categories, data, catNames) {
 		.domain(categories.map(function(d) { return d.industry; }))
 	    .rangeBands([0, width], rangePadding + 0.002, 0);
 
-	// console.log('x.range',x.range());
-
 	var y = d3.scale.linear()
-		.domain([-70, 70])
+		.domain([-max, max])
 	    .range([height, 0]);
 
 	var h = d3.scale.linear()
-		.domain([0, 50])
+		.domain([0, max])
 		.range([0, height/2]);
 
 
@@ -139,6 +160,8 @@ function comboChart(categories, data, catNames) {
 	chart.append("g")
 	  	.attr("class", "y axis")
 	  	.call(yAxis);
+
+
 
 	// chart.append("text")
 	//     .attr("class", "y label-support")
@@ -180,20 +203,20 @@ function comboChart(categories, data, catNames) {
 			.attr('width', barWidth)
 			.attr('height', height);
 
-		for (var j = -60; j <= 60; j += 20) {
-			chart.append('line')
-				.attr('class', function() {
-					if (j === 0) {
-						return 'zero-line';
-					} else {
-						return 'h-line';
-					}
-				})
-				.attr('x1', xPos)
-				.attr('y1', y(j))
-				.attr('x2', barWidth + xPos)
-				.attr('y2', y(j));
-		}
+		// for (var j = -max; j <= max; j += 20) {
+		// 	chart.append('line')
+		// 		.attr('class', function() {
+		// 			if (j === 0) {
+		// 				return 'zero-line';
+		// 			} else {
+		// 				return 'h-line';
+		// 			}
+		// 		})
+		// 		.attr('x1', xPos)
+		// 		.attr('y1', y(j))
+		// 		.attr('x2', barWidth + xPos)
+		// 		.attr('y2', y(j));
+		// }
 
 		var xLabelPadding = 10;
 
@@ -237,9 +260,6 @@ function comboChart(categories, data, catNames) {
 				else if (i % 3 === 0) { return height + xLinePadding + 12.5;} 
 				else { return height + xLinePadding + 25; }
 			});
-
-		
-
 
 		previous = barWidth + padding + xPos;
 	}

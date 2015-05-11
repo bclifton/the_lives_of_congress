@@ -1,6 +1,8 @@
 var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
+var Handlebars = require('handlebars');
+
 var queue = require('queue-async');
 
 var util = require('./utilities');
@@ -14,8 +16,10 @@ function run(cid) {
 function load(cid) {
 	d3.json('assets/financialassets/' + cid + '_asset_totals.json', function(error, d) {
 		if (error) {
+			console.log('error');
 			renderError(error);
 		} else {
+
 			total = 0;
 			data = [];
 			_.each(d, function(value, key) {
@@ -30,7 +34,8 @@ function load(cid) {
 				}
 			});
 
-			render(data, total);
+		    render(data, total);
+			
 		}
 	});
 
@@ -38,9 +43,15 @@ function load(cid) {
 
 function render(data, total) {
 	
-	$('#assets-bar-chart-title').append(' ' + util.currency(total));
+	$('#investments-barchart-title').empty().append(' ' + util.currency(total));
+
+	var graphic_template_source = d3.select('#investments-template').html();
+	var graphic_template = Handlebars.compile(graphic_template_source);
+	d3.select('#investments-graphics').html(graphic_template());
+
+
 	var margin = {top: 10, right: 20, bottom: 30, left: 150};
-	var width = $('#assets-bar-chart').width() - margin.left - margin.right;
+	var width = $('#investments-barchart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
 
 	var sorted = _.last(_.sortBy(data, 'money'), 3);
@@ -62,7 +73,7 @@ function render(data, total) {
 	    .scale(y)
 	    .orient('left');
 
-	var chart = d3.select("#assets-bar-chart")
+	var chart = d3.select("#investments-barchart")
 		.append('svg')
 		.attr('class', 'chart')
 	    .attr('width', width + margin.left + margin.right)
@@ -108,7 +119,7 @@ function render(data, total) {
 	    })
 	    .on('mouseout', function() {
 	    	tooltip.off();
-	    });;
+	    });
 	
 	bar.append("text")
 	    .attr("x", function(d) { return x(d.percent) + 5; })
@@ -128,7 +139,14 @@ function render(data, total) {
 }
 
 function renderError(error) {
-	console.log('financialAssets.renderError', error);
+	$('#investments-barchart-title').empty();
+	var template_source = d3.select("#error-template").html();
+	var property_template = Handlebars.compile(template_source);
+	var data = {'errorMessage':'There are no known Stock or Mutual Fund assets.'};
+	var html = property_template(data);
+	$('#investments-description p ').empty();
+	d3.select('#investments-graphics').html(html);
+
 }
 
 

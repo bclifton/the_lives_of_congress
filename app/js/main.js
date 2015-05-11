@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var $ = require('jquery');
+var d3 = require('d3');
 var typeahead = require('typeahead.js');
 var director = require('director');
 var Handlebars = require('handlebars');
@@ -7,10 +8,10 @@ var states = require('./states');
 
 var everyone;
 
-$('#openBtn').click(function(){
+// $('#openBtn').click(function(){
 
-	$('#myModal').modal({show:true});
-});
+// 	$('#myModal').modal({show:true});
+// });
 
 var components = {
 	map: require('./map'),
@@ -33,14 +34,20 @@ function getEveryone(cb) {
 }
 
 function home() {
-	clearPerson();
-	console.log('home');
+	console.log("HOME!");
+	// clearPerson();
+	// $('body').css('background-image', 'url(https://the-lives-of-congress.s3.amazonaws.com/capital1.jpg)');
+
+	var homepage_template_source = d3.select('#homepage-template').html();
+	var homepage_template = Handlebars.compile(homepage_template_source);
+	d3.select('body').html(homepage_template());
+
 }
 
-function about() {
-	clearPerson();
-	console.log('about');
-}
+// function about() {
+// 	clearPerson();
+// 	console.log('about');
+// }
 
 function clearPerson() {
 	$('#properties-wrapper').empty();
@@ -52,7 +59,18 @@ function clearPerson() {
 	$('#map').html();
 }
 
+
 function loadPerson(id) {
+
+	console.log('loadPerson: ', id);
+
+	$('body').css('background-image', 'none');
+
+	var card_template_source = d3.select('#card-template').html();
+	var card_template = Handlebars.compile(card_template_source);
+	d3.select('body').html(card_template());
+
+
 	getEveryone(function(data){
 		var person = _.findWhere(data, {bioguide_id: id});
 		if (person) {
@@ -72,14 +90,24 @@ function loadPerson(id) {
 }
 
 
+var allroutes = function() {
+	var route = window.location.hash.slice(2);
+};
+
+
 
 var routes = {
 	'/': home,
-	'/About': about,
+	// '/#': home,
+	// '/About': about,
     '/:id': loadPerson
 };
 
 var router = director.Router(routes);
+
+router.configure({
+    on: allroutes
+});
 
 
 ////////////////////////////////////////////////////////////
@@ -104,7 +132,13 @@ var matcher = function(everyone) {
     cb(matches);
   };
 };
- 
+
+
+if (typeof($('#home')) !== undefined) {
+	var homepage_template_source = d3.select('#homepage-template').html();
+	var homepage_template = Handlebars.compile(homepage_template_source);
+	d3.select('body').html(homepage_template());
+} 
 
 getEveryone(function() {
 

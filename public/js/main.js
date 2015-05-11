@@ -12,7 +12,7 @@ function run(person) {
 	var infoWidth = $('#info-panel').width();
 	var w = (infoWidth - 147) / 2;
 	$('#portrait').css('margin-left', w).css('margin-right', w);
-	$('#portrait').append('<img src="https://bclifton.s3.amazonaws.com/' + person.bioguide_id + '.jpg" class="clip-ellipse">');
+	$('#portrait').append('<img src="https://the-lives-of-congress.s3.amazonaws.com/' + person.bioguide_id + '.jpg" class="clip-ellipse">');
 
 	var type;
 	if (person.type === 'rep') {
@@ -69,6 +69,8 @@ exports.run = run;
 var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
+var Handlebars = require('handlebars');
+
 var queue = require('queue-async');
 
 var util = require('./utilities');
@@ -82,8 +84,10 @@ function run(cid) {
 function load(cid) {
 	d3.json('assets/financialassets/' + cid + '_asset_totals.json', function(error, d) {
 		if (error) {
+			console.log('error');
 			renderError(error);
 		} else {
+
 			total = 0;
 			data = [];
 			_.each(d, function(value, key) {
@@ -98,7 +102,8 @@ function load(cid) {
 				}
 			});
 
-			render(data, total);
+		    render(data, total);
+			
 		}
 	});
 
@@ -106,9 +111,15 @@ function load(cid) {
 
 function render(data, total) {
 	
-	$('#assets-bar-chart-title').append(' ' + util.currency(total));
+	$('#investments-barchart-title').empty().append(' ' + util.currency(total));
+
+	var graphic_template_source = d3.select('#investments-template').html();
+	var graphic_template = Handlebars.compile(graphic_template_source);
+	d3.select('#investments-graphics').html(graphic_template());
+
+
 	var margin = {top: 10, right: 20, bottom: 30, left: 150};
-	var width = $('#assets-bar-chart').width() - margin.left - margin.right;
+	var width = $('#investments-barchart').width() - margin.left - margin.right;
 	var height = 300 - margin.top - margin.bottom;
 
 	var sorted = _.last(_.sortBy(data, 'money'), 3);
@@ -130,7 +141,7 @@ function render(data, total) {
 	    .scale(y)
 	    .orient('left');
 
-	var chart = d3.select("#assets-bar-chart")
+	var chart = d3.select("#investments-barchart")
 		.append('svg')
 		.attr('class', 'chart')
 	    .attr('width', width + margin.left + margin.right)
@@ -176,7 +187,7 @@ function render(data, total) {
 	    })
 	    .on('mouseout', function() {
 	    	tooltip.off();
-	    });;
+	    });
 	
 	bar.append("text")
 	    .attr("x", function(d) { return x(d.percent) + 5; })
@@ -196,7 +207,14 @@ function render(data, total) {
 }
 
 function renderError(error) {
-	console.log('financialAssets.renderError', error);
+	$('#investments-barchart-title').empty();
+	var template_source = d3.select("#error-template").html();
+	var property_template = Handlebars.compile(template_source);
+	var data = {'errorMessage':'There are no known Stock or Mutual Fund assets.'};
+	var html = property_template(data);
+	$('#investments-description p ').empty();
+	d3.select('#investments-graphics').html(html);
+
 }
 
 
@@ -210,9 +228,10 @@ function showTooltip(data) {
 
 exports.run = run;
 
-},{"./tooltip":8,"./utilities":9,"d3":10,"jquery":44,"queue-async":46,"underscore":48}],3:[function(require,module,exports){
+},{"./tooltip":8,"./utilities":9,"d3":10,"handlebars":32,"jquery":44,"queue-async":46,"underscore":48}],3:[function(require,module,exports){
 var _ = require('underscore');
 var $ = require('jquery');
+var d3 = require('d3');
 var typeahead = require('typeahead.js');
 var director = require('director');
 var Handlebars = require('handlebars');
@@ -220,10 +239,10 @@ var states = require('./states');
 
 var everyone;
 
-$('#openBtn').click(function(){
+// $('#openBtn').click(function(){
 
-	$('#myModal').modal({show:true});
-});
+// 	$('#myModal').modal({show:true});
+// });
 
 var components = {
 	map: require('./map'),
@@ -246,14 +265,20 @@ function getEveryone(cb) {
 }
 
 function home() {
-	clearPerson();
-	console.log('home');
+	console.log("HOME!");
+	// clearPerson();
+	// $('body').css('background-image', 'url(https://the-lives-of-congress.s3.amazonaws.com/capital1.jpg)');
+
+	var homepage_template_source = d3.select('#homepage-template').html();
+	var homepage_template = Handlebars.compile(homepage_template_source);
+	d3.select('body').html(homepage_template());
+
 }
 
-function about() {
-	clearPerson();
-	console.log('about');
-}
+// function about() {
+// 	clearPerson();
+// 	console.log('about');
+// }
 
 function clearPerson() {
 	$('#properties-wrapper').empty();
@@ -265,7 +290,18 @@ function clearPerson() {
 	$('#map').html();
 }
 
+
 function loadPerson(id) {
+
+	console.log('loadPerson: ', id);
+
+	$('body').css('background-image', 'none');
+
+	var card_template_source = d3.select('#card-template').html();
+	var card_template = Handlebars.compile(card_template_source);
+	d3.select('body').html(card_template());
+
+
 	getEveryone(function(data){
 		var person = _.findWhere(data, {bioguide_id: id});
 		if (person) {
@@ -285,14 +321,24 @@ function loadPerson(id) {
 }
 
 
+var allroutes = function() {
+	var route = window.location.hash.slice(2);
+};
+
+
 
 var routes = {
 	'/': home,
-	'/About': about,
+	// '/#': home,
+	// '/About': about,
     '/:id': loadPerson
 };
 
 var router = director.Router(routes);
+
+router.configure({
+    on: allroutes
+});
 
 
 ////////////////////////////////////////////////////////////
@@ -317,7 +363,13 @@ var matcher = function(everyone) {
     cb(matches);
   };
 };
- 
+
+
+if (typeof($('#home')) !== undefined) {
+	var homepage_template_source = d3.select('#homepage-template').html();
+	var homepage_template = Handlebars.compile(homepage_template_source);
+	d3.select('body').html(homepage_template());
+} 
 
 getEveryone(function() {
 
@@ -355,7 +407,7 @@ function onAutocompleted($e, person) {
 
 
 
-},{"./basic":1,"./financialAssets":2,"./map":4,"./realestate":5,"./states":6,"./support":7,"director":11,"handlebars":32,"jquery":44,"typeahead.js":47,"underscore":48}],4:[function(require,module,exports){
+},{"./basic":1,"./financialAssets":2,"./map":4,"./realestate":5,"./states":6,"./support":7,"d3":10,"director":11,"handlebars":32,"jquery":44,"typeahead.js":47,"underscore":48}],4:[function(require,module,exports){
 var _ = require('underscore');
 var L = require('leaflet');
 var queue = require('queue-async');
@@ -552,6 +604,10 @@ function load(id) {
 function render(data, id) {
   // console.log(data, id);
 
+  var graphic_template_source = d3.select('#realestate-template').html();
+  var graphic_template = Handlebars.compile(graphic_template_source);
+  d3.select('#realestate-assets-graphics').html(graphic_template());
+
   data = data.map(function(d){
     // d.fullname = d.full_name;
     d.fullname = clean_name(d.name);
@@ -575,9 +631,10 @@ function render(data, id) {
   var template_source = d3.select("#property-template").html();
   var property_template = Handlebars.compile(template_source);
 
-  var html = property_template(data);
   $('#realestate-descrip p').empty();
   $('#realestate-descrip').append('<p>Click on the image to open Google Street View</p>');
+  
+  var html = property_template(data);
   d3.select('#properties-wrapper').html(html);
   d3.selectAll('.property')
     .data(data.items)
@@ -739,9 +796,12 @@ Handlebars.registerHelper('display_value', function(minv, maxv){
 
 
 function renderError(error) {
-  $('#realestate-descrip p').empty();
-  var html = '<h4 class="error-description">There are no known real estate assets.</h4>';
-  d3.select('#properties-wrapper').html(html);
+  var template_source = d3.select("#error-template").html();
+  var property_template = Handlebars.compile(template_source);
+  var data = {'errorMessage':'There are no known Real Estate assets.'};
+  var html = property_template(data);
+  $('#realestate-description p').empty();
+  d3.select('#realestate-assets-graphics').html(html);
 }
 
 exports.run = run;
@@ -813,6 +873,7 @@ module.exports = {
 var _ = require('underscore');
 var $ = require('jquery');
 var d3 = require('d3');
+var Handlebars = require('handlebars');
 var queue = require('queue-async');
 
 var tooltip = require('./tooltip');
@@ -887,13 +948,24 @@ function render(error, categories, data) {
 }
 
 function renderError(error) {
-	console.log('support.renderError', error);
+	var template_source = d3.select("#error-template").html();
+	var property_template = Handlebars.compile(template_source);
+	var data = {'errorMessage':'There are no known Industry Support.'};
+	var html = property_template(data);
+	// $('#realestate-description p').empty();
+	d3.select('#outsider-support-graphics').html(html);
 }
 
 
 function comboChart(categories, data, catNames) {
 	// console.log(catNames);
 	// console.log(data);
+
+	var graphic_template_source = d3.select('#support-template').html();
+	var graphic_template = Handlebars.compile(graphic_template_source);
+	d3.select('#outsider-support-graphics').html(graphic_template());
+
+
 
 	var total = catNames.reduce(function(previousValue, currentValue, i) {
 		if (i === 1) {
@@ -902,7 +974,18 @@ function comboChart(categories, data, catNames) {
 			return previousValue + d3.values(currentValue)[0];
 		}
 	});
-	// console.log('total', total);
+
+	var opposeMax = d3.max(data, function(d) { return d3.values(d)[0].oppose; });
+	var supportMax = d3.max(data, function(d) { return d3.values(d)[0].support; });
+
+	var max;
+	if (supportMax >= opposeMax) {
+		max = supportMax;
+	} else {
+		max = opposeMax;
+	}
+	console.log(max, supportMax, opposeMax);
+
 
 	var margin = {top: 20, right: 20, bottom: 70, left: 40};
 	var width = $('#support-bar-chart').width() - margin.left - margin.right;
@@ -914,14 +997,12 @@ function comboChart(categories, data, catNames) {
 		.domain(categories.map(function(d) { return d.industry; }))
 	    .rangeBands([0, width], rangePadding + 0.002, 0);
 
-	// console.log('x.range',x.range());
-
 	var y = d3.scale.linear()
-		.domain([-70, 70])
+		.domain([-max, max])
 	    .range([height, 0]);
 
 	var h = d3.scale.linear()
-		.domain([0, 50])
+		.domain([0, max])
 		.range([0, height/2]);
 
 
@@ -951,6 +1032,8 @@ function comboChart(categories, data, catNames) {
 	chart.append("g")
 	  	.attr("class", "y axis")
 	  	.call(yAxis);
+
+
 
 	// chart.append("text")
 	//     .attr("class", "y label-support")
@@ -992,20 +1075,20 @@ function comboChart(categories, data, catNames) {
 			.attr('width', barWidth)
 			.attr('height', height);
 
-		for (var j = -60; j <= 60; j += 20) {
-			chart.append('line')
-				.attr('class', function() {
-					if (j === 0) {
-						return 'zero-line';
-					} else {
-						return 'h-line';
-					}
-				})
-				.attr('x1', xPos)
-				.attr('y1', y(j))
-				.attr('x2', barWidth + xPos)
-				.attr('y2', y(j));
-		}
+		// for (var j = -max; j <= max; j += 20) {
+		// 	chart.append('line')
+		// 		.attr('class', function() {
+		// 			if (j === 0) {
+		// 				return 'zero-line';
+		// 			} else {
+		// 				return 'h-line';
+		// 			}
+		// 		})
+		// 		.attr('x1', xPos)
+		// 		.attr('y1', y(j))
+		// 		.attr('x2', barWidth + xPos)
+		// 		.attr('y2', y(j));
+		// }
 
 		var xLabelPadding = 10;
 
@@ -1049,9 +1132,6 @@ function comboChart(categories, data, catNames) {
 				else if (i % 3 === 0) { return height + xLinePadding + 12.5;} 
 				else { return height + xLinePadding + 25; }
 			});
-
-		
-
 
 		previous = barWidth + padding + xPos;
 	}
@@ -1290,7 +1370,7 @@ function showTooltipSupport(data) {
 
 exports.run = run;
 
-},{"./tooltip":8,"d3":10,"jquery":44,"queue-async":46,"underscore":48}],8:[function(require,module,exports){
+},{"./tooltip":8,"d3":10,"handlebars":32,"jquery":44,"queue-async":46,"underscore":48}],8:[function(require,module,exports){
 var $ = require('jquery');
 
 module.exports = {

@@ -37,6 +37,10 @@ function load(id) {
 function render(data, id) {
   // console.log(data, id);
 
+  var graphic_template_source = d3.select('#realestate-template').html();
+  var graphic_template = Handlebars.compile(graphic_template_source);
+  d3.select('#realestate-assets-graphics').html(graphic_template());
+
   data = data.map(function(d){
     // d.fullname = d.full_name;
     d.fullname = clean_name(d.name);
@@ -60,9 +64,10 @@ function render(data, id) {
   var template_source = d3.select("#property-template").html();
   var property_template = Handlebars.compile(template_source);
 
-  var html = property_template(data);
   $('#realestate-descrip p').empty();
   $('#realestate-descrip').append('<p>Click on the image to open Google Street View</p>');
+  
+  var html = property_template(data);
   d3.select('#properties-wrapper').html(html);
   d3.selectAll('.property')
     .data(data.items)
@@ -224,9 +229,12 @@ Handlebars.registerHelper('display_value', function(minv, maxv){
 
 
 function renderError(error) {
-  $('#realestate-descrip p').empty();
-  var html = '<h4 class="error-description">There are no known real estate assets.</h4>';
-  d3.select('#properties-wrapper').html(html);
+  var template_source = d3.select("#error-template").html();
+  var property_template = Handlebars.compile(template_source);
+  var data = {'errorMessage':'There are no known Real Estate assets.'};
+  var html = property_template(data);
+  $('#realestate-description p').empty();
+  d3.select('#realestate-assets-graphics').html(html);
 }
 
 exports.run = run;
