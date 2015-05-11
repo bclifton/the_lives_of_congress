@@ -6,7 +6,7 @@ var util = require('./utilities');
 
 
 function run(person) {
-	console.log(person);
+	// console.log(person);
 
 	var infoWidth = $('#info-panel').width();
 	var w = (infoWidth - 147) / 2;
@@ -49,7 +49,6 @@ function run(person) {
 
 
 		var target = '#committee-' + committeesMembership[i];
-		console.log('target', target);
 		$(target).append('<li style="float:left;"><h5>' + membershipStatus +'</h5><ul id="sub-' + membershipType + '"></ul></li>');
 		var membership = committeesMembership[i];
 		_.each(person.committees[committeesMembership[i]], function(item) {

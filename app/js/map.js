@@ -17,7 +17,7 @@ function run(person) {
 function load(person) {
 	var district = util.zeroPad(person.district, 2);
 
-	console.log(person.state + district);
+	// console.log(person.state + district);
 
 	p = person;
 

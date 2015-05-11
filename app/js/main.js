@@ -24,24 +24,23 @@ var components = {
 
 function getEveryone(cb) {
 	if (!everyone) {
+		console.log('getEveryone:no one');
 		d3.json('assets/legislator-current_info.json', function(error, data) {
 			everyone = data;
 			cb(everyone);
 		});
 	} else {
+		console.log('getEveryone:everyone');
 		cb(everyone);
 	}
 }
 
 function home() {
-	console.log("HOME!");
 	// clearPerson();
-	// $('body').css('background-image', 'url(https://the-lives-of-congress.s3.amazonaws.com/capital1.jpg)');
-
+	$('body').css('background-image', 'url(https://the-lives-of-congress.s3.amazonaws.com/capital1.jpg)');
 	var homepage_template_source = d3.select('#homepage-template').html();
 	var homepage_template = Handlebars.compile(homepage_template_source);
-	d3.select('body').html(homepage_template());
-
+	d3.select('#all-content').html(homepage_template());
 }
 
 // function about() {
@@ -68,15 +67,13 @@ function loadPerson(id) {
 
 	var card_template_source = d3.select('#card-template').html();
 	var card_template = Handlebars.compile(card_template_source);
-	d3.select('body').html(card_template());
-
+	d3.select('#all-content').html(card_template());
 
 	getEveryone(function(data){
+		console.log('loadPerson.getEveryone', everyone);
 		var person = _.findWhere(data, {bioguide_id: id});
 		if (person) {
-			console.log(person);
 			clearPerson();
-
 			components.map.run(person);
 			components.basic.run(person);
 			components.support.run(id);
@@ -85,29 +82,26 @@ function loadPerson(id) {
 		} else {
 			//replace with 404 like page
 			console.log('person not found');
+			home(); // temporary 404...	
 		}
 	});
 }
 
 
-var allroutes = function() {
-	var route = window.location.hash.slice(2);
-};
-
-
+// var allroutes = function() {
+// 	var route = window.location.hash.slice(2);
+// };
 
 var routes = {
 	'/': home,
-	// '/#': home,
-	// '/About': about,
     '/:id': loadPerson
 };
 
 var router = director.Router(routes);
 
-router.configure({
-    on: allroutes
-});
+// router.configure({
+//     on: allroutes
+// });
 
 
 ////////////////////////////////////////////////////////////
@@ -119,8 +113,6 @@ var matcher = function(everyone) {
     matches = [];
     substrRegex = new RegExp(q, 'i');
  
-    
-
     $.each(everyone, function(i, person) {
     	var state = states[person.state];
     	person.statename = state;
@@ -137,11 +129,11 @@ var matcher = function(everyone) {
 if (typeof($('#home')) !== undefined) {
 	var homepage_template_source = d3.select('#homepage-template').html();
 	var homepage_template = Handlebars.compile(homepage_template_source);
-	d3.select('body').html(homepage_template());
+	d3.select('#all-content').html(homepage_template());
 } 
 
 getEveryone(function() {
-
+	console.log('getEveryone', everyone);
 	$('#srch-term').typeahead({
 	    hint: true,
 	    highlight: false,
@@ -152,7 +144,6 @@ getEveryone(function() {
 	    source: matcher(everyone),
 	    limit: 600,
 	    display: function(obj) {
-	      // console.log(obj)
 	      return obj.first_name + ' ' + obj.last_name + ' (' + states[obj.state] + ')';
 	    },
 	    templates: {

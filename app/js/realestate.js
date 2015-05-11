@@ -35,7 +35,7 @@ function load(id) {
 }
 
 function render(data, id) {
-  // console.log(data, id);
+  // console.log('realestate', data, id);
 
   var graphic_template_source = d3.select('#realestate-template').html();
   var graphic_template = Handlebars.compile(graphic_template_source);
@@ -229,6 +229,7 @@ Handlebars.registerHelper('display_value', function(minv, maxv){
 
 
 function renderError(error) {
+  
   var template_source = d3.select("#error-template").html();
   var property_template = Handlebars.compile(template_source);
   var data = {'errorMessage':'There are no known Real Estate assets.'};
