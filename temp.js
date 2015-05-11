@@ -81,7 +81,7 @@ function run(cid) {
 }
 
 function load(cid) {
-	d3.json('assets/financialassets/' + cid + '_asset_totals.json', function(error, d) {
+	d3.json('public/assets/financialassets/' + cid + '_asset_totals.json', function(error, d) {
 		if (error) {
 			console.log('error');
 			renderError(error);
@@ -251,37 +251,11 @@ var components = {
 	basic: require('./basic')
 };
 
-function setupAutcomplete(){
-	$('#srch-term').typeahead({
-	    hint: true,
-	    highlight: false,
-	    minLength: 1
-	},
-	{
-	    name: 'congress',
-	    source: matcher(everyone),
-	    limit: 600,
-	    display: function(obj) {
-	      return obj.first_name + ' ' + obj.last_name + ' (' + states[obj.state] + ')';
-	    },
-	    templates: {
-		    empty: [
-		      '<div class="empty-message">',
-		        'No Results',
-		      '</div>'
-		    ].join('\n'),
-		    suggestion: Handlebars.compile('<div>{{first_name}} {{last_name}} ({{statename}})</div>')
-		}
-	}).on('typeahead:selected', onAutocompleted);
-
-	console.log('setting up autocomplekjasj')
-}
-
 
 function getEveryone(cb) {
 	if (!everyone) {
 		console.log('getEveryone:no one');
-		d3.json('assets/legislator-current_info.json', function(error, data) {
+		d3.json('public/assets/legislator-current_info.json', function(error, data) {
 			everyone = data;
 			cb(everyone);
 		});
@@ -297,7 +271,6 @@ function home() {
 	var homepage_template_source = d3.select('#homepage-template').html();
 	var homepage_template = Handlebars.compile(homepage_template_source);
 	d3.select('#all-content').html(homepage_template());
-	setupAutcomplete();
 }
 
 // function about() {
@@ -336,8 +309,6 @@ function loadPerson(id) {
 			components.support.run(id);
 			components.financialassets.run(person.opensecrets_id);
 			components.realestate.run(person.opensecrets_id);
-
-			setupAutcomplete();
 		} else {
 			//replace with 404 like page
 			console.log('person not found');
@@ -385,16 +356,38 @@ var matcher = function(everyone) {
 };
 
 
+if (typeof($('#home')) !== undefined) {
+	var homepage_template_source = d3.select('#homepage-template').html();
+	var homepage_template = Handlebars.compile(homepage_template_source);
+	d3.select('#all-content').html(homepage_template());
+} 
 
 getEveryone(function() {
 	console.log('getEveryone', everyone);
-	if (typeof($('#home')) !== undefined) {
-		var homepage_template_source = d3.select('#homepage-template').html();
-		var homepage_template = Handlebars.compile(homepage_template_source);
-		d3.select('#all-content').html(homepage_template());
-		setupAutcomplete();
-	} 
+	$('#srch-term').typeahead({
+	    hint: true,
+	    highlight: false,
+	    minLength: 1
+	},
+	{
+	    name: 'congress',
+	    source: matcher(everyone),
+	    limit: 600,
+	    display: function(obj) {
+	      return obj.first_name + ' ' + obj.last_name + ' (' + states[obj.state] + ')';
+	    },
+	    templates: {
+		    empty: [
+		      '<div class="empty-message">',
+		        'No Results',
+		      '</div>'
+		    ].join('\n'),
+		    suggestion: Handlebars.compile('<div>{{first_name}} {{last_name}} ({{statename}})</div>')
+		}
+	}).on('typeahead:selected', onAutocompleted);
+
 	router.init();
+
 });
  
 
@@ -428,8 +421,8 @@ function load(person) {
 
 	p = person;
 
-	var districts_filepath = 'assets/districts/' + person.state + district + '_geo.json';
-	var locations_filepath = 'assets/property_with_income.csv';
+	var districts_filepath = 'public/assets/districts/' + person.state + district + '_geo.json';
+	var locations_filepath = 'public/assets/property_with_income.csv';
 
 	queue()
 		.defer(d3.json, districts_filepath)
@@ -584,7 +577,7 @@ function checkForID(data, id) {
 }
 
 function load(id) {
-	d3.csv('assets/property_with_income.csv', function(error, data){
+	d3.csv('public/assets/property_with_income.csv', function(error, data){
 		if (error) {
 			renderError(error);
 		} else {
@@ -887,8 +880,8 @@ function load(id) {
 
 	legID = id;
 	queue()
-		.defer(d3.csv, 'assets/crp_categories_sector-industries1.csv')
-		.defer(d3.json, 'assets/114_legislator_sector_support.json')
+		.defer(d3.csv, 'public/assets/crp_categories_sector-industries1.csv')
+		.defer(d3.json, 'public/assets/114_legislator_sector_support.json')
 		.await(render);
 
 	// d3.csv('assets/crp_categories_sector-industries.csv', function(error, data) {
