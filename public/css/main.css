@@ -254,7 +254,8 @@ form.navbar-form {
 
 .tt-dataset.tt-dataset-congress {
   max-height: 400px;
-  overflow: scroll; }
+  overflow: scroll;
+  text-align: left; }
 
 .tt-cursor {
   background-color: rgba(193, 186, 169, 0.2);
