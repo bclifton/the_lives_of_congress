@@ -16,6 +16,14 @@
   #home .center-block {
     margin: 0;
     float: none; }
+  #home .home-subtext {
+    margin-top: 50px;
+    text-align: center;
+    color: #969696;
+    font-size: 12px;
+    line-height: 1.5; }
+    #home .home-subtext a {
+      color: #5182c6; }
 
 body {
   margin: 0;

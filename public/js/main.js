@@ -273,20 +273,16 @@ function setupAutcomplete(){
 		    suggestion: Handlebars.compile('<div>{{first_name}} {{last_name}} ({{statename}})</div>')
 		}
 	}).on('typeahead:selected', onAutocompleted);
-
-	console.log('setting up autocomplekjasj')
 }
 
 
 function getEveryone(cb) {
 	if (!everyone) {
-		console.log('getEveryone:no one');
 		d3.json('assets/legislator-current_info.json', function(error, data) {
 			everyone = data;
 			cb(everyone);
 		});
 	} else {
-		console.log('getEveryone:everyone');
 		cb(everyone);
 	}
 }
@@ -317,8 +313,7 @@ function clearPerson() {
 
 
 function loadPerson(id) {
-
-	console.log('loadPerson: ', id);
+	// console.log('loadPerson: ', id);
 
 	$('body').css('background-image', 'none');
 
@@ -327,7 +322,6 @@ function loadPerson(id) {
 	d3.select('#all-content').html(card_template());
 
 	getEveryone(function(data){
-		console.log('loadPerson.getEveryone', everyone);
 		var person = _.findWhere(data, {bioguide_id: id});
 		if (person) {
 			clearPerson();
@@ -340,7 +334,7 @@ function loadPerson(id) {
 			setupAutcomplete();
 		} else {
 			//replace with 404 like page
-			console.log('person not found');
+			// console.log('person not found');
 			home(); // temporary 404...	
 		}
 	});
@@ -387,7 +381,6 @@ var matcher = function(everyone) {
 
 
 getEveryone(function() {
-	console.log('getEveryone', everyone);
 	if (typeof($('#home')) !== undefined) {
 		var homepage_template_source = d3.select('#homepage-template').html();
 		var homepage_template = Handlebars.compile(homepage_template_source);
